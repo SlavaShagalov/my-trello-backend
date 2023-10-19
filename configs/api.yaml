@@ -1,0 +1,16 @@
+# Postgres
+PG_HOST: data-storage
+PG_PORT: 5432
+PG_DB: trello_db
+PG_USER: slava
+PG_PASSWORD: 1234
+PG_SSL_MODE: disable
+
+# Redis
+REDIS_HOST: sessions-storage
+REDIS_PORT: 6379
+REDIS_PASSWORD: 1234
+
+# Validation
+MIN_USERNAME_LEN: 4
+MAX_USERNAME_LEN: 30

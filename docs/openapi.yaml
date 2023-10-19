@@ -1,0 +1,1325 @@
+openapi: 3.0.0
+
+info:
+  title: Trello API
+  version: 0.1.9
+  contact:
+    name: Shagalov Veaceslav
+    url: t.me/slava_shagalov
+
+
+servers:
+  - url: http://localhost/api/v1
+    description: Main server
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Workspaces
+  - name: Boards
+  - name: Lists
+  - name: Cards
+
+paths:
+  /auth/signup:
+    post:
+      summary: Creates new user and returns authentication cookie.
+      description: Creates new user and returns authentication cookie.
+      security: [ ]
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        description: A JSON object containing the sign in params.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpReq"
+      responses:
+        "200":
+          description: >
+            Successfully created user.
+            The session ID is returned in a cookie named `JSESSIONID`. 
+            You need to include this cookie in subsequent requests.
+            A JSON with user data in body.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: JSESSIONID=abcde12345; Path=/; HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+
+  /auth/signin:
+    post:
+      summary: Logs in and returns the authentication cookie
+      description: Logs in and returns the authentication cookie
+      requestBody:
+        required: true
+        description: A JSON object containing the sign up params.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInReq"
+      security: [ ]
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a cookie named `JSESSIONID`. 
+            You need to include this cookie in subsequent requests.
+            A JSON with user data in body.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: JSESSIONID=abcde12345; Path=/; HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "404":
+          $ref: "#/components/responses/ErrUserNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+
+  /auth/logout:
+    delete:
+      summary: Logs out and deletes the authentication cookie.
+      security:
+        - cookieAuth: [ ]
+      tags:
+        - Auth
+      responses:
+        "204":
+          description: Successfully logged out.
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+
+  /users/{id}:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Returns user with specified id
+      responses:
+        "200":
+          description: A JSON with user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrUserNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      tags:
+        - Users
+      security:
+        - cookieAuth: [ ]
+    patch:
+      tags:
+        - Users
+      summary: Partial update of user
+      description: Partial update of user
+      requestBody:
+        description: A JSON object containing the data to update user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateUser"
+      responses:
+        "200":
+          description: A JSON object of updated user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrUserNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /users/{id}/avatar:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    put:
+      tags:
+        - Users
+      summary: Update of user avatar
+      description: Update of user avatar
+      requestBody:
+        description: Multipart form with avatar file
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UpdateUserAvatar"
+      responses:
+        "200":
+          description: A JSON object of updated user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrUserNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /workspaces:
+    post:
+      tags:
+        - Workspaces
+      summary: Create a new workspace
+      description: Create a new workspace
+      requestBody:
+        description: A JSON object containing the data to create workspace.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkspace"
+      responses:
+        "200":
+          description: A JSON object of created workspace.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    get:
+      tags:
+        - Workspaces
+      summary: Returns all workspaces with boards of current user
+      description: Returns all workspaces with boards of current user
+      responses:
+        "200":
+          description: A JSON with workspaces array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspacesWithBoards"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /workspaces/{id}:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    get:
+      tags:
+        - Workspaces
+      summary: Returns workspace by id
+      description: Returns workspace by id
+      responses:
+        "200":
+          description: A JSON object of workspace.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrWorkspaceNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    patch:
+      tags:
+        - Workspaces
+      summary: Partial update of workspace
+      description: Partial update of workspace
+      requestBody:
+        description: A JSON object containing the data to update workspace.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateWorkspace"
+      responses:
+        "200":
+          description: A JSON object of updated workspace.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrWorkspaceNotFound"
+      security:
+        - cookieAuth: [ ]
+    delete:
+      tags:
+        - Workspaces
+      summary: Delete workspace
+      description: Delete workspace
+      responses:
+        "204":
+          description: Workspace deleted successfully.
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrWorkspaceNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /workspaces/{id}/boards:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    post:
+      tags:
+        - Workspaces
+      summary: Create a new board
+      description: Create a new board
+      requestBody:
+        description: A JSON object containing the data to create board.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBoard"
+      responses:
+        "200":
+          description: A JSON object of created board.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Board"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    get:
+      tags:
+        - Workspaces
+      summary: Returns boards by workspace id
+      description: Returns boards by workspace id
+      responses:
+        "200":
+          description: A JSON with boards array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Boards"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+          
+  /boards:
+    parameters:
+      - name: title
+        in: query
+        description: Query string for board title
+        required: false
+        schema:
+          type: string
+    get:
+      tags:
+        - Boards
+      summary: Returns user boards by filter parameters
+      description: Returns user boards by filter parameters
+      responses:
+        "200":
+          description: A JSON object with filtered user boards.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Boards"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /boards/{id}:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    get:
+      tags:
+        - Boards
+      summary: Returns board by id
+      description: Returns board by id
+      responses:
+        "200":
+          description: A JSON object of board.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Board"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrBoardNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    patch:
+      tags:
+        - Boards
+      summary: Partial update of board
+      description: Partial update of board
+      requestBody:
+        description: A JSON object containing the data to update board.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateBoard"
+      responses:
+        "200":
+          description: A JSON object of updated board.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Board"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrBoardNotFound"
+      security:
+        - cookieAuth: [ ]
+    delete:
+      tags:
+        - Boards
+      summary: Delete board
+      description: Delete board
+      responses:
+        "204":
+          description: Board deleted successfully.
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrBoardNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /boards/{id}/background:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    put:
+      tags:
+        - Boards
+      summary: Update of board background photo
+      description: Update of board background photo
+      requestBody:
+        description: Multipart form with background photo file
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UpdateBoardBackground"
+      responses:
+        "200":
+          description: A JSON object of updated board.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Board"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrBoardNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /boards/{id}/lists:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    post:
+      tags:
+        - Boards
+      summary: Create a new list
+      description: Create a new list
+      requestBody:
+        description: A JSON object containing the data to create list.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateList"
+      responses:
+        "200":
+          description: A JSON object of created list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    get:
+      tags:
+        - Boards
+      summary: Returns all lists with cards by board id
+      description: Returns all lists with cards of current user
+      responses:
+        "200":
+          description: A JSON with lists array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListsWithCards"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /lists:
+    parameters:
+      - name: title
+        in: query
+        description: Query string for list title
+        required: false
+        schema:
+          type: string
+    get:
+      tags:
+        - Lists
+      summary: Returns user lists by filter parameters
+      description: Returns user lists by filter parameters
+      responses:
+        "200":
+          description: A JSON object with filtered user lists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lists"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /lists/{id}:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    get:
+      tags:
+        - Lists
+      summary: Returns list by id
+      description: Returns list by id
+      responses:
+        "200":
+          description: A JSON object of list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrListNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    patch:
+      tags:
+        - Lists
+      summary: Partial update of list
+      description: Partial update of list
+      requestBody:
+        description: A JSON object containing the data to update list.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateList"
+      responses:
+        "200":
+          description: A JSON object of updated list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/List"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrListNotFound"
+      security:
+        - cookieAuth: [ ]
+    delete:
+      tags:
+        - Lists
+      summary: Delete list
+      description: Delete list
+      responses:
+        "204":
+          description: List deleted successfully.
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrListNotFound"
+      security:
+        - cookieAuth: [ ]
+
+  /lists/{id}/cards:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    post:
+      tags:
+        - Lists
+      summary: Create a new card
+      description: Create a new card
+      requestBody:
+        description: A JSON object containing the data to create card.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCard"
+      responses:
+        "200":
+          description: A JSON object of created card.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    get:
+      tags:
+        - Lists
+      summary: Returns all cards by list id
+      description: Returns all cards by list id
+      responses:
+        "200":
+          description: A JSON with cards array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cards"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /cards:
+    parameters:
+      - name: title
+        in: query
+        description: Query string for card title
+        required: false
+        schema:
+          type: string
+      - name: content
+        in: query
+        description: Query string for card content
+        required: false
+        schema:
+          type: string
+    get:
+      tags:
+        - Cards
+      summary: Returns user cards by filter parameters
+      description: Returns user cards by filter parameters
+      responses:
+        "200":
+          description: A JSON object with filtered user cards.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cards"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+
+  /cards/{id}:
+    parameters:
+      - schema:
+          type: integer
+        name: id
+        in: path
+        required: true
+    get:
+      tags:
+        - Cards
+      summary: Returns card by id
+      description: Returns card by id
+      responses:
+        "200":
+          description: A JSON object of card.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrCardNotFound"
+        "500":
+          $ref: "#/components/responses/ErrInternalServerError"
+      security:
+        - cookieAuth: [ ]
+    patch:
+      tags:
+        - Cards
+      summary: Partial update of card
+      description: Partial update of card
+      requestBody:
+        description: A JSON object containing the data to update card.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartialUpdateCard"
+      responses:
+        "200":
+          description: A JSON object of updated card.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrForbidden"
+        "404":
+          $ref: "#/components/responses/ErrCardNotFound"
+      security:
+        - cookieAuth: [ ]
+    delete:
+      tags:
+        - Cards
+      summary: Delete card
+      description: Delete card
+      responses:
+        "204":
+          description: Card deleted successfully.
+        "400":
+          $ref: "#/components/responses/ErrResponseBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrCardNotFound"
+      security:
+        - cookieAuth: [ ]
+
+components:
+  schemas:
+    Id:
+      type: integer
+      required: true
+      example: 3
+    Email:
+      type: string
+      example: slava@vk.com
+    Password:
+      type: string
+      format: password
+      minLength: 8
+      maxLength: 100
+      example: 12345678
+    Username:
+      type: string
+      minLength: 4
+      maxLength: 40
+      example: slava51
+    Name:
+      type: string
+      minLength: 1
+      maxLength: 60
+      example: Slava
+    Link:
+      type: string
+      minLength: 4
+      maxLength: 100
+      example: https://pickpin.ru
+    MediaSource:
+      type: string
+      example: https://s3.trello.ru/uploaded_picture.jpg
+    Time:
+      type: string
+      example: "11.07.2023 12:23:45"
+    Title:
+      type: string
+      example: Slava
+
+    SignInReq:
+      type: object
+      properties:
+        username:
+          $ref: "#/components/schemas/Username"
+        password:
+          $ref: "#/components/schemas/Password"
+    SignUpReq:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/Name"
+        username:
+          $ref: "#/components/schemas/Username"
+        email:
+          $ref: "#/components/schemas/Email"
+        password:
+          $ref: "#/components/schemas/Password"
+
+    User:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        username:
+          $ref: "#/components/schemas/Username"
+        email:
+          $ref: "#/components/schemas/Email"
+        name:
+          $ref: "#/components/schemas/Name"
+        avatar:
+          $ref: "#/components/schemas/MediaSource"
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+    PartialUpdateUser:
+      type: object
+      properties:
+        username:
+          type: string
+          required: false
+          example: "slava51"
+        email:
+          type: string
+          required: false
+          example: "slava@vk.com"
+        name:
+          type: string
+          required: false
+          example: "Slava"
+    UpdateUserAvatar:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: binary
+
+    Workspace:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "IT"
+        description:
+          type: string
+          example: "Information Technologies"
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+    WorkspaceWithBoards:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "IT"
+        description:
+          type: string
+          example: "Information Technologies"
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+        boards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Board"
+    Workspaces:
+      type: object
+      properties:
+        workspaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/Workspace"
+    WorkspacesWithBoards:
+      type: object
+      properties:
+        workspaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceWithBoards"
+    CreateWorkspace:
+      type: object
+      properties:
+        title:
+          type: string
+          required: true
+        description:
+          type: string
+          required: false
+      example: {
+        "title": "IT",
+        "description": "Information Technologies",
+      }
+    PartialUpdateWorkspace:
+      type: object
+      properties:
+        title:
+          type: string
+          required: false
+          example: "IT"
+        description:
+          type: string
+          required: false
+          example: "Information Technologies"
+    Board:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        workspace_id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "Backend"
+        description:
+          type: string
+          example: "Backend Board"
+        background:
+          $ref: "#/components/schemas/MediaSource"
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+    Boards:
+      type: object
+      properties:
+        boards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Board"
+    CreateBoard:
+      type: object
+      properties:
+        title:
+          type: string
+          required: true
+        description:
+          type: string
+          required: false
+      example: {
+        "title": "Backend",
+        "description": "Backend Board",
+      }
+    PartialUpdateBoard:
+      type: object
+      properties:
+        workspace_id:
+          required: false
+          type: integer
+          example: 5
+        title:
+          type: string
+          required: false
+          example: "Backend"
+        description:
+          type: string
+          required: false
+          example: "Backend Board"
+    UpdateBoardBackground:
+      type: object
+      properties:
+        background:
+          type: string
+          format: binary
+
+    List:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        board_id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "API"
+        position:
+          type: integer
+          example: 4
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+    ListWithCards:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        board_id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "API"
+        position:
+          type: integer
+          example: 4
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+    Lists:
+      type: object
+      properties:
+        lists:
+          type: array
+          items:
+            $ref: "#/components/schemas/List"
+    ListsWithCards:
+      type: object
+      properties:
+        lists:
+          type: array
+          items:
+            $ref: "#/components/schemas/ListWithCards"
+    CreateList:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "API"
+      example: {
+        "title": "API",
+      }
+    PartialUpdateList:
+      type: object
+      properties:
+        title:
+          type: string
+          required: false
+          example: "API"
+        position:
+          type: integer
+          required: false
+          example: 4
+        board_id:
+          required: false
+          type: integer
+          example: 3
+    Card:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        list_id:
+          $ref: "#/components/schemas/Id"
+        title:
+          type: string
+          example: "REST"
+        content:
+          type: string
+          example: "RESTFUL API DOCS: https://restfulapi.net/"
+        position:
+          type: integer
+          example: 5
+        created_at:
+          $ref: "#/components/schemas/Time"
+        updated_at:
+          $ref: "#/components/schemas/Time"
+    Cards:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+    CreateCard:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "REST"
+        content:
+          type: string
+          example: "RESTFUL API DOCS: https://restfulapi.net/"
+    PartialUpdateCard:
+      type: object
+      properties:
+        list_id:
+          required: false
+          type: integer
+          example: 3
+        title:
+          type: string
+          required: false
+          example: "REST"
+        content:
+          type: string
+          required: false
+          example: "RESTFUL API DOCS: https://restfulapi.net/"
+        position:
+          type: integer
+          required: false
+          example: 5
+
+    SearchResult:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Card"
+        lists:
+          type: array
+          items:
+            $ref: "#/components/schemas/List"
+        boards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Board"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: SESSIONID
+  responses:
+    ErrResponseBadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Bad request
+            properties:
+              error:
+                type: string
+                example: "{{reason}}"
+    ErrUnauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Unauthorized
+            properties:
+              error:
+                type: string
+                example: "unauthorized"
+    ErrUserNotFound:
+      description: User not found
+      content:
+        application/json:
+          schema:
+            type: object
+            description: User not found
+            properties:
+              error:
+                type: string
+                example: "user not found"
+    ErrWorkspaceNotFound:
+      description: Workspace not found
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Workspace not found
+            properties:
+              error:
+                type: string
+                example: "workspace not found"
+    ErrBoardNotFound:
+      description: Board not found
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Board not found
+            properties:
+              error:
+                type: string
+                example: "board not found"
+    ErrListNotFound:
+      description: List not found
+      content:
+        application/json:
+          schema:
+            type: object
+            description: List not found
+            properties:
+              error:
+                type: string
+                example: "list not found"
+    ErrCardNotFound:
+      description: Card not found
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Card not found
+            properties:
+              error:
+                type: string
+                example: "card not found"
+    ErrForbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Access denied
+            properties:
+              error:
+                type: string
+                example: "access denied"
+    ErrInternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Internal Server Error
+            properties:
+              error:
+                type: string
+                example: "{{reason}}"

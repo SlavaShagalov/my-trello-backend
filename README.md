@@ -1,2 +1,8 @@
-# my-trello-backend
-My Trello backend realization.
+# MyTrello Backend
+
+## Technologies:
+
+- Golang
+- Postgres
+- Redis
+- Docker, Docker Compose

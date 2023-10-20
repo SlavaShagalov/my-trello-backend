@@ -9,7 +9,7 @@ WORKDIR /src
 COPY . ./
 RUN CGO_ENABLED=0 go build -o /bin/api cmd/api/main.go
 
-FROM ubuntu AS api
+FROM scratch AS api
 WORKDIR /
 COPY --from=build /bin/api /bin/api
 CMD ["/bin/api"]

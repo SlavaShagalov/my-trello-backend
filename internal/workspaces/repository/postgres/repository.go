@@ -16,7 +16,7 @@ type repository struct {
 	log *zap.Logger
 }
 
-func NewRepository(db *sql.DB, log *zap.Logger) pkgWorkspaces.Repository {
+func New(db *sql.DB, log *zap.Logger) pkgWorkspaces.Repository {
 	return &repository{db: db, log: log}
 }
 
@@ -45,7 +45,7 @@ func (repo *repository) Create(params *pkgWorkspaces.CreateParams) (models.Works
 		return models.Workspace{}, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
-	repo.log.Debug("New workspace created", zap.Any("workspace", workspace))
+	repo.log.Debug("New workspace", zap.Int("workspace_id", workspace.ID))
 	return workspace, nil
 }
 

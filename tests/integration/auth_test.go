@@ -47,10 +47,10 @@ func (s *AuthSuite) SetupSuite() {
 	s.rdb, err = pkgDb.NewRedis(s.log, ctx)
 	s.Require().NoError(err)
 
-	s.usersRepo = usersRepository.NewRepository(s.db, s.log)
-	sessionsRepo := sessionsRepository.NewRepository(s.rdb, ctx, s.log)
+	s.usersRepo = usersRepository.New(s.db, s.log)
+	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log)
 	hasher := pkgHasher.NewHasher()
-	s.uc = authUC.NewUsecase(s.usersRepo, sessionsRepo, hasher)
+	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher)
 }
 
 func (s *AuthSuite) TearDownSuite() {

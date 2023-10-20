@@ -78,7 +78,7 @@ func TestUsecase_SignIn(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.usersRepo, f.sessionsRepo, f.hasher)
+			uc := New(f.usersRepo, f.sessionsRepo, f.hasher)
 			user, authToken, err := uc.SignIn(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -165,7 +165,7 @@ func TestUsecase_SignUp(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.usersRepo, f.sessionsRepo, f.hasher)
+			uc := New(f.usersRepo, f.sessionsRepo, f.hasher)
 			user, authToken, err := uc.SignUp(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -226,7 +226,7 @@ func TestUsecase_CheckAuth(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl))
+			uc := New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl))
 			userID, err := uc.CheckAuth(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -280,7 +280,7 @@ func TestUsecase_Logout(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl))
+			uc := New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl))
 			err := uc.Logout(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)

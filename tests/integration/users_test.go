@@ -37,7 +37,7 @@ func (s *UsersSuite) SetupSuite() {
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
-	s.repo = usersRepo.NewRepository(s.db, s.logger)
+	s.repo = usersRepo.New(s.db, s.logger)
 	s.uc = usersUC.NewUsecase(s.repo)
 }
 

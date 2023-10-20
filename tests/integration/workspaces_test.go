@@ -34,8 +34,8 @@ func (s *WorkspacesSuite) SetupSuite() {
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
-	repo := workspacesRepo.NewRepository(s.db, s.logger)
-	s.uc = workspacesUC.NewUsecase(repo)
+	repo := workspacesRepo.New(s.db, s.logger)
+	s.uc = workspacesUC.New(repo)
 }
 
 func (s *WorkspacesSuite) TearDownSuite() {

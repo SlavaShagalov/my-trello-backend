@@ -11,7 +11,7 @@ type usecase struct {
 	rep workspaces.Repository
 }
 
-func NewUsecase(rep workspaces.Repository) workspaces.Usecase {
+func New(rep workspaces.Repository) workspaces.Usecase {
 	return &usecase{rep: rep}
 }
 

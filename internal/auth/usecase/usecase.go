@@ -18,7 +18,7 @@ type usecase struct {
 	log          *zap.Logger
 }
 
-func NewUsecase(usersRepo users.Repository, sessionsRepo sessions.Repository, hasher pkgHasher.Hasher, log *zap.Logger) auth.Usecase {
+func New(usersRepo users.Repository, sessionsRepo sessions.Repository, hasher pkgHasher.Hasher, log *zap.Logger) auth.Usecase {
 	return &usecase{
 		usersRepo:    usersRepo,
 		sessionsRepo: sessionsRepo,

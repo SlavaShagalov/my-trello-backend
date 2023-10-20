@@ -19,7 +19,7 @@ type repository struct {
 	log *zap.Logger
 }
 
-func NewRepository(rdb *redis.Client, ctx context.Context, log *zap.Logger) pkgSessions.Repository {
+func New(rdb *redis.Client, ctx context.Context, log *zap.Logger) pkgSessions.Repository {
 	return &repository{rdb: rdb, ctx: ctx, log: log}
 }
 

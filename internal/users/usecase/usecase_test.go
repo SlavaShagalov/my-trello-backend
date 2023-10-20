@@ -63,7 +63,7 @@ func TestUsecase_List(t *testing.T) {
 			users: []models.User{},
 			err:   nil,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().List().Return(f.users, pkgErrors.ErrDb)
 			},
@@ -85,7 +85,7 @@ func TestUsecase_List(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			workspaces, err := uc.List()
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -127,7 +127,7 @@ func TestUsecase_Get(t *testing.T) {
 			},
 			err: nil,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.userID).Return(*f.user, pkgErrors.ErrDb)
 			},
@@ -150,7 +150,7 @@ func TestUsecase_Get(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			user, err := uc.Get(test.userID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -192,7 +192,7 @@ func TestUsecase_GetByUsername(t *testing.T) {
 			},
 			err: nil,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().GetByUsername(f.username).Return(*f.user, pkgErrors.ErrDb)
 			},
@@ -215,7 +215,7 @@ func TestUsecase_GetByUsername(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			user, err := uc.GetByUsername(test.username)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -270,7 +270,7 @@ func TestUsecase_FullUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			user, err := uc.FullUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -328,7 +328,7 @@ func TestUsecase_PartialUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			user, err := uc.PartialUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -382,7 +382,7 @@ func TestUsecase_Delete(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			err := uc.Delete(test.userID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)

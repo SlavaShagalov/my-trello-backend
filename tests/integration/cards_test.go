@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	pkgCards "github.com/SlavaShagalov/my-trello-backend/internal/cards"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	cardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
 	cardsUC "github.com/SlavaShagalov/my-trello-backend/internal/cards/usecase"
@@ -236,7 +236,7 @@ func (s *CardsSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.Content, card.Content, "incorrect Content")
 				assert.Equal(s.T(), test.params.ListID, card.ListID, "incorrect ListID")
 
-				// check card in db
+				// check card in storages
 				getCard, err := s.uc.Get(card.ID)
 				assert.NoError(s.T(), err, "failed to fetch card from the database")
 				assert.Equal(s.T(), card.ID, getCard.ID, "incorrect cardID")
@@ -319,7 +319,7 @@ func (s *CardsSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.card.Content, card.Content, "incorrect Content")
 				assert.Equal(s.T(), test.card.ListID, card.ListID, "incorrect ListID")
 
-				// check card in db
+				// check card in storages
 				getCard, err := s.uc.Get(card.ID)
 				assert.NoError(s.T(), err, "failed to fetch card from the database")
 				assert.Equal(s.T(), test.card.Title, getCard.Title, "incorrect Title")

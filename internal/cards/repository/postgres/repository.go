@@ -60,7 +60,7 @@ const listCmd = `
 func (repo *repository) List(listID int) ([]models.Card, error) {
 	rows, err := repo.db.Query(listCmd, listID)
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", listCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd),
 			zap.Int("list_id", listID))
 		return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
@@ -201,14 +201,14 @@ const deleteCmd = `
 func (repo *repository) Delete(id int) error {
 	result, err := repo.db.Exec(deleteCmd, id)
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", deleteCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),
 			zap.Int("id", id))
 		return errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", deleteCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),
 			zap.Int("id", id))
 		return errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}

@@ -42,7 +42,7 @@ func TestUsecase_Create(t *testing.T) {
 			workspace: models.Workspace{},
 			err:       pkgErrors.ErrUserNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.workspace, pkgErrors.ErrDb)
 			},
@@ -120,7 +120,7 @@ func TestUsecase_List(t *testing.T) {
 			workspaces: nil,
 			err:        pkgErrors.ErrUserNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().List(f.userID).Return(f.workspaces, pkgErrors.ErrDb)
 			},
@@ -186,7 +186,7 @@ func TestUsecase_Get(t *testing.T) {
 			workspace:   models.Workspace{},
 			err:         pkgErrors.ErrUserNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.workspaceID).Return(*f.workspace, pkgErrors.ErrDb)
 			},

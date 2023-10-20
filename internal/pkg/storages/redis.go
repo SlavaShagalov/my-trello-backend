@@ -1,4 +1,4 @@
-package db
+package storages
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func NewRedis(log *zap.Logger, ctx context.Context) (*redis.Client, error) {
-	log.Info("Connecting to redis...",
+	log.Info("Connecting to Redis...",
 		zap.String("host", viper.GetString(config.RedisHost)),
 		zap.String("port", viper.GetString(config.RedisPort)),
 	)

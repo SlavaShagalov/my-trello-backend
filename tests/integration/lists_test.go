@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	pkgLists "github.com/SlavaShagalov/my-trello-backend/internal/lists"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	listsRepo "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	listsUC "github.com/SlavaShagalov/my-trello-backend/internal/lists/usecase"
@@ -223,7 +223,7 @@ func (s *ListsSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.Title, list.Title, "incorrect Title")
 				assert.Equal(s.T(), test.params.BoardID, list.BoardID, "incorrect BoardID")
 
-				// check list in db
+				// check list in storages
 				getList, err := s.uc.Get(list.ID)
 				assert.NoError(s.T(), err, "failed to fetch list from the database")
 				assert.Equal(s.T(), list.ID, getList.ID, "incorrect listID")
@@ -287,7 +287,7 @@ func (s *ListsSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.list.Title, list.Title, "incorrect Title")
 				assert.Equal(s.T(), test.list.BoardID, list.BoardID, "incorrect BoardID")
 
-				// check list in db
+				// check list in storages
 				getList, err := s.uc.Get(list.ID)
 				assert.NoError(s.T(), err, "failed to fetch list from the database")
 				assert.Equal(s.T(), test.list.Title, getList.Title, "incorrect Title")

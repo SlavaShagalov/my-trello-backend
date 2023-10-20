@@ -5,7 +5,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
-	"github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
+	pWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
@@ -13,11 +13,11 @@ import (
 )
 
 type delivery struct {
-	uc  workspaces.Usecase
+	uc  pWorkspaces.Usecase
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc workspaces.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -26,7 +26,7 @@ func RegisterHandlers(mux *mux.Router, uc workspaces.Usecase, log *zap.Logger, c
 	const (
 		workspacesPrefix = "/workspaces"
 		workspacesPath   = constants.ApiPrefix + workspacesPrefix
-		workspacePath    = constants.ApiPrefix + workspacesPrefix + "/{id}"
+		workspacePath    = workspacesPath + "/{id}"
 	)
 
 	mux.HandleFunc(workspacesPath, checkAuth(del.create)).Methods(http.MethodPost)
@@ -57,7 +57,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := workspaces.CreateParams{
+	params := pWorkspaces.CreateParams{
 		Title:       request.Title,
 		Description: request.Description,
 		UserID:      userID,
@@ -129,10 +129,7 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := workspaces.PartialUpdateParams{ID: workspaceID}
-	del.log.Warn("DEBUG", zap.Any("request", request))
-	del.log.Warn("DEBUG", zap.Any("title", request.Title))
-	del.log.Warn("DEBUG", zap.Any("description", request.Description))
+	params := pWorkspaces.PartialUpdateParams{ID: workspaceID}
 	params.UpdateTitle = request.Title != nil
 	if params.UpdateTitle {
 		params.Title = *request.Title

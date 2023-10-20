@@ -8,7 +8,7 @@ import (
 
 var (
 	// Common repository
-	ErrDb = errors.New("db error")
+	ErrDb = errors.New("database error")
 
 	// Users
 	ErrUserNotFound      = errors.New("user not found")

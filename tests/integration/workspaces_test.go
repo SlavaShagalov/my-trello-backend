@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 	"testing"
 
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	pkgWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 
 	workspacesRepo "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
@@ -229,7 +229,7 @@ func (s *WorkspacesSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.Title, workspace.Title, "incorrect Title")
 				assert.Equal(s.T(), test.params.Description, workspace.Description, "incorrect Description")
 
-				// check workspace in db
+				// check workspace in storages
 				getWorkspace, err := s.uc.Get(workspace.ID)
 				assert.NoError(s.T(), err, "failed to fetch workspace from the database")
 				assert.Equal(s.T(), workspace.ID, getWorkspace.ID, "incorrect workspaceID")
@@ -308,7 +308,7 @@ func (s *WorkspacesSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.workspace.Title, workspace.Title, "incorrect Title")
 				assert.Equal(s.T(), test.workspace.Description, workspace.Description, "incorrect Description")
 
-				// check workspace in db
+				// check workspace in storages
 				getWorkspace, err := s.uc.Get(workspace.ID)
 				assert.NoError(s.T(), err, "failed to fetch workspace from the database")
 				assert.Equal(s.T(), workspace.UserID, getWorkspace.UserID, "incorrect UserID")

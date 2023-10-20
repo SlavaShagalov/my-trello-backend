@@ -45,7 +45,15 @@ func easyjsonD2b7633eDecodeGithubComSlavaShagalovMyTrelloBackendInternalAuthDeli
 		case "name":
 			out.Name = string(in.String())
 		case "avatar":
-			out.Avatar = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+				out.Avatar = nil
+			} else {
+				if out.Avatar == nil {
+					out.Avatar = new(string)
+				}
+				*out.Avatar = string(in.String())
+			}
 		case "created_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
@@ -91,7 +99,11 @@ func easyjsonD2b7633eEncodeGithubComSlavaShagalovMyTrelloBackendInternalAuthDeli
 	{
 		const prefix string = ",\"avatar\":"
 		out.RawString(prefix)
-		out.String(string(in.Avatar))
+		if in.Avatar == nil {
+			out.RawString("null")
+		} else {
+			out.String(string(*in.Avatar))
+		}
 	}
 	{
 		const prefix string = ",\"created_at\":"
@@ -244,7 +256,15 @@ func easyjsonD2b7633eDecodeGithubComSlavaShagalovMyTrelloBackendInternalAuthDeli
 		case "name":
 			out.Name = string(in.String())
 		case "avatar":
-			out.Avatar = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+				out.Avatar = nil
+			} else {
+				if out.Avatar == nil {
+					out.Avatar = new(string)
+				}
+				*out.Avatar = string(in.String())
+			}
 		case "created_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.CreatedAt).UnmarshalJSON(data))
@@ -290,7 +310,11 @@ func easyjsonD2b7633eEncodeGithubComSlavaShagalovMyTrelloBackendInternalAuthDeli
 	{
 		const prefix string = ",\"avatar\":"
 		out.RawString(prefix)
-		out.String(string(in.Avatar))
+		if in.Avatar == nil {
+			out.RawString("null")
+		} else {
+			out.String(string(*in.Avatar))
+		}
 	}
 	{
 		const prefix string = ",\"created_at\":"

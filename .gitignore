@@ -1,9 +1,12 @@
-# JetBrains
-.idea
-
 *.out
 *.o
 
 coverage.html
 
 *.log
+
+# JetBrains
+.idea
+
+# AWS Credentials
+.aws

@@ -52,7 +52,7 @@ func TestUsecase_Create(t *testing.T) {
 			card:   models.Card{},
 			err:    pkgErrors.ErrListNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.card, pkgErrors.ErrDb)
 			},
@@ -130,7 +130,7 @@ func TestUsecase_List(t *testing.T) {
 			cards:  nil,
 			err:    pkgErrors.ErrListNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().List(f.listID).Return(f.cards, pkgErrors.ErrDb)
 			},
@@ -196,7 +196,7 @@ func TestUsecase_Get(t *testing.T) {
 			card: models.Card{},
 			err:  pkgErrors.ErrCardNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.card, pkgErrors.ErrDb)
 			},

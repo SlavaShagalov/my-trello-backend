@@ -53,6 +53,7 @@ services:
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api.yaml:/configs/api.yaml
+      - ./.aws:/root/.aws
     networks:
       - trello-network
     deploy:

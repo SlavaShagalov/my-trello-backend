@@ -26,7 +26,7 @@ type signInResponse struct {
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
-	Avatar    string    `json:"avatar"`
+	Avatar    *string   `json:"avatar"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -48,7 +48,7 @@ type signUpResponse struct {
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
-	Avatar    string    `json:"avatar"`
+	Avatar    *string   `json:"avatar"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

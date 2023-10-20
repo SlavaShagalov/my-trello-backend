@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	pkgBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	boardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
 	boardsUC "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
@@ -230,7 +230,7 @@ func (s *BoardsSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.Description, board.Description, "incorrect Description")
 				assert.Equal(s.T(), test.params.WorkspaceID, board.WorkspaceID, "incorrect WorkspaceID")
 
-				// check board in db
+				// check board in storages
 				getBoard, err := s.uc.Get(board.ID)
 				assert.NoError(s.T(), err, "failed to fetch board from the database")
 				assert.Equal(s.T(), board.ID, getBoard.ID, "incorrect boardID")
@@ -313,7 +313,7 @@ func (s *BoardsSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.board.Description, board.Description, "incorrect Description")
 				assert.Equal(s.T(), test.board.WorkspaceID, board.WorkspaceID, "incorrect WorkspaceID")
 
-				// check board in db
+				// check board in storages
 				getBoard, err := s.uc.Get(board.ID)
 				assert.NoError(s.T(), err, "failed to fetch board from the database")
 				assert.Equal(s.T(), test.board.Title, getBoard.Title, "incorrect Title")

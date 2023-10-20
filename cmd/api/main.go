@@ -4,22 +4,25 @@ import (
 	"context"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
-	pDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	"log"
 	"net/http"
 	"os"
 
+	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
 
 	authUsecase "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"
+	usersUsecase "github.com/SlavaShagalov/my-trello-backend/internal/users/usecase"
 	workspacesUsecase "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/usecase"
 
 	authDel "github.com/SlavaShagalov/my-trello-backend/internal/auth/delivery/http"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
+	usersDel "github.com/SlavaShagalov/my-trello-backend/internal/users/delivery/http"
 	workspacesDel "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/delivery/http"
 
 	"github.com/gorilla/mux"
@@ -48,6 +51,8 @@ func main() {
 
 	// Config
 	config.SetDefaultPostgresConfig()
+	config.SetDefaultRedisConfig()
+	config.SetDefaultS3Config()
 	config.SetDefaultValidationConfig()
 	viper.SetConfigName("api")
 	viper.SetConfigType("yaml")
@@ -59,20 +64,20 @@ func main() {
 	}
 
 	// Data Storage
-	db, err := pDb.NewPostgres(logger)
+	db, err := pStorages.NewPostgres(logger)
 	if err != nil {
 		os.Exit(1)
 	}
 	defer func() {
 		err = db.Close()
 		if err != nil {
-			logger.Error("Failed to close DB connection", zap.Error(err))
+			logger.Error("Failed to close Postgres connection", zap.Error(err))
 		}
-		logger.Info("DB connection closed")
+		logger.Info("Postgres connection closed")
 	}()
 
 	// Sessions Storage
-	rdb, err := pDb.NewRedis(logger, context.Background())
+	rdb, err := pStorages.NewRedis(logger, context.Background())
 	if err != nil {
 		os.Exit(1)
 	}
@@ -84,19 +89,27 @@ func main() {
 		logger.Info("Redis client closed")
 	}()
 
+	// S3
+	s3Client, err := pStorages.NewS3(logger)
+	if err != nil {
+		os.Exit(1)
+	}
+
 	// Hasher
 	hasher := pHasher.NewHasher()
 
 	// Repo
+	imagesRepo := imagesRepository.New(s3Client, logger)
 	sessionsRepo := sessionsRepository.New(rdb, context.Background(), logger)
 	usersRepo := usersRepository.New(db, logger)
 	workspacesRepo := workspacesRepository.New(db, logger)
-	//boardsRepo := boardsRepository.New(db, logger)
-	//listsRepo := listsRepository.New(db, logger)
-	//cardsRepo := cardsRepository.New(db, logger)
+	//boardsRepo := boardsRepository.New(storages, logger)
+	//listsRepo := listsRepository.New(storages, logger)
+	//cardsRepo := cardsRepository.New(storages, logger)
 
 	// Use cases
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
+	usersUC := usersUsecase.New(usersRepo, imagesRepo)
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
 	//boardsUC := boardsUsecase.New(boardsRepo)
 	//listsUC := listsUsecase.New(listsRepo)
@@ -112,6 +125,7 @@ func main() {
 
 	// Delivery
 	authDel.RegisterHandlers(router, authUC, logger, checkAuth)
+	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth)
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth)
 
 	server := http.Server{

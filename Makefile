@@ -16,7 +16,7 @@ stop:
 
 .PHONY: api-logs
 api-logs:
-	tail -f cmd/api/logs/api.log | batcat --paging=never --language=log
+	tail -f -n +1 cmd/api/logs/api.log | batcat --paging=never --language=log
 
 .PHONY: mocks
 mocks:

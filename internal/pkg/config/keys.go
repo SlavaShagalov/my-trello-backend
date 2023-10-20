@@ -17,6 +17,13 @@ const (
 	RedisPassword = "REDIS_PASSWORD"
 )
 
+// S3
+const (
+	S3BucketName    = "S3_BUCKET_NAME"
+	S3DefaultRegion = "S3_DEFAULT_REGION"
+	S3Endpoint      = "S3_ENDPOINT"
+)
+
 // Validation
 const (
 	MinUsernameLen = "MIN_USERNAME_LEN"

@@ -45,7 +45,7 @@ func TestUsecase_Create(t *testing.T) {
 			list:   models.List{},
 			err:    pkgErrors.ErrBoardNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.list, pkgErrors.ErrDb)
 			},
@@ -123,7 +123,7 @@ func TestUsecase_List(t *testing.T) {
 			lists:   nil,
 			err:     pkgErrors.ErrBoardNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().List(f.boardID).Return(f.lists, pkgErrors.ErrDb)
 			},
@@ -189,7 +189,7 @@ func TestUsecase_Get(t *testing.T) {
 			list: models.List{},
 			err:  pkgErrors.ErrListNotFound,
 		},
-		"db error": {
+		"storages error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.list, pkgErrors.ErrDb)
 			},

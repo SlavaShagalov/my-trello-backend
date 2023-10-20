@@ -14,10 +14,10 @@ import (
 
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	pkgAuth "github.com/SlavaShagalov/my-trello-backend/internal/auth"
 	authUC "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"

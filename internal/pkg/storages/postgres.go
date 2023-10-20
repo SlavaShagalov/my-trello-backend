@@ -1,4 +1,4 @@
-package db
+package storages
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ import (
 )
 
 func NewPostgres(log *zap.Logger) (*sql.DB, error) {
-	log.Info("Connecting to db...",
+	log.Info("Connecting to Postgres...",
 		zap.String("host", viper.GetString(config.PostgresHost)),
 		zap.Int("port", viper.GetInt(config.PostgresPort)),
 		zap.String("dbname", viper.GetString(config.PostgresDB)),
@@ -29,16 +29,16 @@ func NewPostgres(log *zap.Logger) (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", params)
 	if err != nil {
-		log.Error("Failed to create DB connection", zap.Error(err))
+		log.Error("Failed to create Postgres connection", zap.Error(err))
 		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Error("Failed to connect to DB", zap.Error(err))
+		log.Error("Failed to connect to Postgres", zap.Error(err))
 		return nil, err
 	}
 
-	log.Info("DB connection created successfully")
+	log.Info("Postgres connection created successfully")
 	return db, nil
 }

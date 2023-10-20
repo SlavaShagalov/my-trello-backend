@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # DB up
-make test-db-up
-make test-redis-up
+make test-storages-up
+make test-s3-up
 sleep 3
-make test-db-prepare
+make test-storages-prepare
 
 # RUN tests
 # -count=100 - check unstable tests
@@ -15,4 +15,4 @@ go tool cover -html=cover.out -o coverage.html
 rm cover.out
 
 # DB down
-trap 'make test-db-down; make test-redis-down' EXIT
+trap 'make test-storages-down; make test-s3-down' EXIT

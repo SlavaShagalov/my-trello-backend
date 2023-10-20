@@ -45,7 +45,7 @@ const listCmd = `
 func (repo *repository) List() ([]models.User, error) {
 	rows, err := repo.db.Query(listCmd)
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", listCmd))
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd))
 		return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 	defer func() {
@@ -54,7 +54,7 @@ func (repo *repository) List() ([]models.User, error) {
 
 	users := []models.User{}
 	var user models.User
-	var avatar sql.NullString
+	var avatar *sql.NullString
 	for rows.Next() {
 		err = rows.Scan(
 			&user.ID,
@@ -62,7 +62,7 @@ func (repo *repository) List() ([]models.User, error) {
 			&user.Password,
 			&user.Email,
 			&user.Name,
-			&avatar,
+			avatar,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
@@ -71,7 +71,12 @@ func (repo *repository) List() ([]models.User, error) {
 			return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
 		}
 
-		user.Avatar = avatar.String
+		if avatar.Valid {
+			user.Avatar = &avatar.String
+		} else {
+			user.Avatar = nil
+		}
+
 		users = append(users, user)
 	}
 
@@ -178,6 +183,34 @@ func (repo *repository) PartialUpdate(params *pkgUsers.PartialUpdateParams) (mod
 	return user, nil
 }
 
+const updateAvatarCmd = `
+	UPDATE users
+	SET avatar = $1
+	WHERE id = $2;`
+
+func (repo *repository) UpdateAvatar(id int, avatar string) error {
+	result, err := repo.db.Exec(updateAvatarCmd, avatar, id)
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateAvatarCmd),
+			zap.Int("id", id))
+		return pkgErrors.ErrDb
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateAvatarCmd),
+			zap.Int("id", id))
+		return pkgErrors.ErrDb
+	}
+
+	if rowsAffected == 0 {
+		return pkgErrors.ErrUserNotFound
+	}
+
+	repo.log.Debug("Avatar updated", zap.Int("id", id))
+	return nil
+}
+
 const deleteCmd = `
 	DELETE FROM users 
 	WHERE id = $1;`
@@ -185,14 +218,14 @@ const deleteCmd = `
 func (repo *repository) Delete(id int) error {
 	result, err := repo.db.Exec(deleteCmd, id)
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", deleteCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),
 			zap.Int("id", id))
 		return errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		repo.log.Error(constants.DBQueryError, zap.Error(err), zap.String("sql_query", deleteCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),
 			zap.Int("id", id))
 		return errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
@@ -224,14 +257,14 @@ func (repo *repository) Exists(userID int) (bool, error) {
 }
 
 func scanUser(row *sql.Row, user *models.User) error {
-	var avatar sql.NullString
+	avatar := new(sql.NullString)
 	err := row.Scan(
 		&user.ID,
 		&user.Username,
 		&user.Password,
 		&user.Email,
 		&user.Name,
-		&avatar,
+		avatar,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -239,6 +272,11 @@ func scanUser(row *sql.Row, user *models.User) error {
 		return err
 	}
 
-	user.Avatar = avatar.String
+	if avatar.Valid {
+		user.Avatar = &avatar.String
+	} else {
+		user.Avatar = nil
+	}
+
 	return nil
 }

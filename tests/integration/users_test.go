@@ -12,9 +12,9 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/db"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	pkgUsers "github.com/SlavaShagalov/my-trello-backend/internal/users"
 	usersRepo "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
@@ -38,7 +38,7 @@ func (s *UsersSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	s.repo = usersRepo.New(s.db, s.logger)
-	s.uc = usersUC.NewUsecase(s.repo)
+	s.uc = usersUC.New(s.repo)
 }
 
 func (s *UsersSuite) TearDownSuite() {
@@ -189,7 +189,7 @@ func (s *UsersSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.Username, user.Username, "incorrect Username")
 				assert.Equal(s.T(), test.params.Email, user.Email, "incorrect Email")
 
-				// check user in db
+				// check user in storages
 				getUser, err := s.uc.Get(user.ID)
 				assert.NoError(s.T(), err, "failed to fetch user from the database")
 				assert.Equal(s.T(), user.ID, getUser.ID, "incorrect userID")
@@ -287,7 +287,7 @@ func (s *UsersSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.user.Username, user.Username, "incorrect Username")
 				assert.Equal(s.T(), test.user.Email, user.Email, "incorrect Email")
 
-				// check user in db
+				// check user in storages
 				getUser, err := s.uc.Get(user.ID)
 				assert.NoError(s.T(), err, "failed to fetch user from the database")
 				assert.Equal(s.T(), test.user.Name, getUser.Name, "incorrect Name")

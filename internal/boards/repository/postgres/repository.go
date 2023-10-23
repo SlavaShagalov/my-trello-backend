@@ -16,7 +16,7 @@ type repository struct {
 	log *zap.Logger
 }
 
-func NewRepository(db *sql.DB, log *zap.Logger) pkgBoards.Repository {
+func New(db *sql.DB, log *zap.Logger) pkgBoards.Repository {
 	return &repository{db: db, log: log}
 }
 
@@ -67,14 +67,15 @@ func (repo *repository) List(workspaceID int) ([]models.Board, error) {
 
 	boards := []models.Board{}
 	var board models.Board
-	var description, background sql.NullString
+	var description sql.NullString
+	var background *sql.NullString
 	for rows.Next() {
 		err = rows.Scan(
 			&board.ID,
 			&board.WorkspaceID,
 			&board.Title,
 			&description,
-			&background,
+			background,
 			&board.CreatedAt,
 			&board.UpdatedAt,
 		)
@@ -84,8 +85,63 @@ func (repo *repository) List(workspaceID int) ([]models.Board, error) {
 			return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
 		}
 
+		if background.Valid {
+			board.Background = &background.String
+		} else {
+			board.Background = nil
+		}
 		board.Description = description.String
-		board.Background = background.String
+
+		boards = append(boards, board)
+	}
+
+	return boards, nil
+}
+
+const listByTitleCmd = `
+	SELECT b.id, b.workspace_id, b.title, b.description, b.background, b.created_at, b.updated_at
+	FROM boards b 
+	JOIN workspaces w on w.id = b.workspace_id
+	WHERE lower(b.title) LIKE lower('%' || $1 || '%') AND w.user_id = $2;`
+
+func (repo *repository) ListByTitle(title string, userID int) ([]models.Board, error) {
+	rows, err := repo.db.Query(listByTitleCmd, title, userID)
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
+			zap.String("title", title))
+		return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	boards := []models.Board{}
+	var board models.Board
+	var description sql.NullString
+	background := new(sql.NullString)
+	for rows.Next() {
+		err = rows.Scan(
+			&board.ID,
+			&board.WorkspaceID,
+			&board.Title,
+			&description,
+			background,
+			&board.CreatedAt,
+			&board.UpdatedAt,
+		)
+		if err != nil {
+			repo.log.Error(constants.DBScanError, zap.Error(err), zap.String("sql", listByTitleCmd),
+				zap.String("title", title))
+			return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
+		}
+
+		if background.Valid {
+			board.Background = &background.String
+		} else {
+			board.Background = nil
+		}
+		board.Description = description.String
+
 		boards = append(boards, board)
 	}
 
@@ -173,6 +229,34 @@ func (repo *repository) PartialUpdate(params *pkgBoards.PartialUpdateParams) (mo
 	return board, nil
 }
 
+const updateBackgroundCmd = `
+	UPDATE boards
+	SET background = $1
+	WHERE id = $2;`
+
+func (repo *repository) UpdateBackground(id int, background string) error {
+	result, err := repo.db.Exec(updateBackgroundCmd, background, id)
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
+			zap.Int("id", id))
+		return pkgErrors.ErrDb
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
+			zap.Int("id", id))
+		return pkgErrors.ErrDb
+	}
+
+	if rowsAffected == 0 {
+		return pkgErrors.ErrBoardNotFound
+	}
+
+	repo.log.Debug("Background updated", zap.Int("id", id))
+	return nil
+}
+
 const deleteCmd = `
 	DELETE FROM boards 
 	WHERE id = $1;`
@@ -201,13 +285,14 @@ func (repo *repository) Delete(id int) error {
 }
 
 func scanBoard(row *sql.Row, board *models.Board) error {
-	var description, background sql.NullString
+	var description sql.NullString
+	background := new(sql.NullString)
 	err := row.Scan(
 		&board.ID,
 		&board.WorkspaceID,
 		&board.Title,
 		&description,
-		&background,
+		background,
 		&board.CreatedAt,
 		&board.UpdatedAt,
 	)
@@ -215,7 +300,12 @@ func scanBoard(row *sql.Row, board *models.Board) error {
 		return err
 	}
 
+	if background.Valid {
+		board.Background = &background.String
+	} else {
+		board.Background = nil
+	}
+
 	board.Description = description.String
-	board.Background = background.String
 	return nil
 }

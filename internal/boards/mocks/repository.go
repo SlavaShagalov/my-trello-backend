@@ -109,6 +109,21 @@ func (mr *MockRepositoryMockRecorder) List(workspaceID interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), workspaceID)
 }
 
+// ListByTitle mocks base method.
+func (m *MockRepository) ListByTitle(title string, userID int) ([]models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByTitle", title, userID)
+	ret0, _ := ret[0].([]models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByTitle indicates an expected call of ListByTitle.
+func (mr *MockRepositoryMockRecorder) ListByTitle(title, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByTitle", reflect.TypeOf((*MockRepository)(nil).ListByTitle), title, userID)
+}
+
 // PartialUpdate mocks base method.
 func (m *MockRepository) PartialUpdate(params *boards.PartialUpdateParams) (models.Board, error) {
 	m.ctrl.T.Helper()
@@ -122,4 +137,18 @@ func (m *MockRepository) PartialUpdate(params *boards.PartialUpdateParams) (mode
 func (mr *MockRepositoryMockRecorder) PartialUpdate(params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PartialUpdate", reflect.TypeOf((*MockRepository)(nil).PartialUpdate), params)
+}
+
+// UpdateBackground mocks base method.
+func (m *MockRepository) UpdateBackground(id int, background string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBackground", id, background)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateBackground indicates an expected call of UpdateBackground.
+func (mr *MockRepositoryMockRecorder) UpdateBackground(id, background interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBackground", reflect.TypeOf((*MockRepository)(nil).UpdateBackground), id, background)
 }

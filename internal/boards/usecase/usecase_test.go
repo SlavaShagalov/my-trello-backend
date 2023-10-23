@@ -154,7 +154,7 @@ func TestUsecase_List(t *testing.T) {
 			}
 
 			serv := NewUsecase(f.repo)
-			boards, err := serv.List(test.workspaceID)
+			boards, err := serv.ListByWorkspace(test.workspaceID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}

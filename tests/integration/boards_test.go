@@ -34,7 +34,7 @@ func (s *BoardsSuite) SetupSuite() {
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
-	repo := boardsRepo.NewRepository(s.db, s.logger)
+	repo := boardsRepo.New(s.db, s.logger)
 	s.uc = boardsUC.NewUsecase(repo)
 }
 
@@ -135,7 +135,7 @@ func (s *BoardsSuite) TestList() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			boards, err := s.uc.List(test.userID)
+			boards, err := s.uc.ListByWorkspace(test.userID)
 
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 

@@ -208,7 +208,7 @@ func (s *ListsSuite) TestFullUpdate() {
 	for name, test := range tests {
 		s.Run(name, func() {
 			tempList, err := s.uc.Create(&pkgLists.CreateParams{
-				Title:   "Temp List",
+				Title:   "Temp ListByWorkspace",
 				BoardID: 2,
 			})
 			require.NoError(s.T(), err, "failed to create temp list")
@@ -272,7 +272,7 @@ func (s *ListsSuite) TestPartialUpdate() {
 	for name, test := range tests {
 		s.Run(name, func() {
 			tempList, err := s.uc.Create(&pkgLists.CreateParams{
-				Title:   "Temp List",
+				Title:   "Temp ListByWorkspace",
 				BoardID: 2,
 			})
 			require.NoError(s.T(), err, "failed to create temp list")
@@ -310,7 +310,7 @@ func (s *ListsSuite) TestDelete() {
 		"normal": {
 			setupList: func() (models.List, error) {
 				return s.uc.Create(&pkgLists.CreateParams{
-					Title:   "Test List",
+					Title:   "Test ListByWorkspace",
 					BoardID: 1,
 				})
 			},

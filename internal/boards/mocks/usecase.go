@@ -94,19 +94,34 @@ func (mr *MockUsecaseMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUsecase)(nil).Get), id)
 }
 
-// List mocks base method.
-func (m *MockUsecase) List(workspaceID int) ([]models.Board, error) {
+// ListByTitle mocks base method.
+func (m *MockUsecase) ListByTitle(title string, userID int) ([]models.Board, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", workspaceID)
+	ret := m.ctrl.Call(m, "ListByTitle", title, userID)
 	ret0, _ := ret[0].([]models.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List.
-func (mr *MockUsecaseMockRecorder) List(workspaceID interface{}) *gomock.Call {
+// ListByTitle indicates an expected call of ListByTitle.
+func (mr *MockUsecaseMockRecorder) ListByTitle(title, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUsecase)(nil).List), workspaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByTitle", reflect.TypeOf((*MockUsecase)(nil).ListByTitle), title, userID)
+}
+
+// ListByWorkspace mocks base method.
+func (m *MockUsecase) ListByWorkspace(workspaceID int) ([]models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByWorkspace", workspaceID)
+	ret0, _ := ret[0].([]models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByWorkspace indicates an expected call of ListByWorkspace.
+func (mr *MockUsecaseMockRecorder) ListByWorkspace(workspaceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWorkspace", reflect.TypeOf((*MockUsecase)(nil).ListByWorkspace), workspaceID)
 }
 
 // PartialUpdate mocks base method.
@@ -122,4 +137,19 @@ func (m *MockUsecase) PartialUpdate(params *boards.PartialUpdateParams) (models.
 func (mr *MockUsecaseMockRecorder) PartialUpdate(params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PartialUpdate", reflect.TypeOf((*MockUsecase)(nil).PartialUpdate), params)
+}
+
+// UpdateBackground mocks base method.
+func (m *MockUsecase) UpdateBackground(id int, imgData []byte, filename string) (*models.Board, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBackground", id, imgData, filename)
+	ret0, _ := ret[0].(*models.Board)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateBackground indicates an expected call of UpdateBackground.
+func (mr *MockUsecaseMockRecorder) UpdateBackground(id, imgData, filename interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBackground", reflect.TypeOf((*MockUsecase)(nil).UpdateBackground), id, imgData, filename)
 }

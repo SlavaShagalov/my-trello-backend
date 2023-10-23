@@ -133,7 +133,7 @@ func (repo *repository) FullUpdate(params *pkgLists.FullUpdateParams) (models.Li
 		return models.List{}, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
-	repo.log.Debug("List full updated", zap.Any("list", list))
+	repo.log.Debug("ListByWorkspace full updated", zap.Any("list", list))
 	return list, nil
 }
 
@@ -183,10 +183,10 @@ func (repo *repository) PartialUpdate(params *pkgLists.PartialUpdateParams) (mod
 		return models.List{}, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
-	repo.log.Debug("List partial updated", zap.Any("list", list))
+	repo.log.Debug("ListByWorkspace partial updated", zap.Any("list", list))
 	return list, nil
 
-	//return convert.List{}, nil
+	//return convert.ListByWorkspace{}, nil
 }
 
 const deleteCmd = `
@@ -212,7 +212,7 @@ func (repo *repository) Delete(id int) error {
 		return pkgErrors.ErrListNotFound
 	}
 
-	repo.log.Debug("List deleted", zap.Int("id", id))
+	repo.log.Debug("ListByWorkspace deleted", zap.Int("id", id))
 	return nil
 }
 

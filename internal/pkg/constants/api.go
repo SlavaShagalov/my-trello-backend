@@ -10,5 +10,5 @@ const (
 
 const (
 	SessionName       = "JSESSIONID"
-	SessionLivingTime = 5 * time.Hour
+	SessionLivingTime = 24 * time.Hour
 )

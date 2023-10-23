@@ -7,7 +7,7 @@ type Board struct {
 	WorkspaceID int       `json:"workspace_id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Background  string    `json:"background"`
+	Background  *string   `json:"background"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

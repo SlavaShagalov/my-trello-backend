@@ -35,7 +35,7 @@ func (s *BoardsSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	repo := boardsRepo.New(s.db, s.logger)
-	s.uc = boardsUC.NewUsecase(repo)
+	s.uc = boardsUC.New(repo)
 }
 
 func (s *BoardsSuite) TearDownSuite() {

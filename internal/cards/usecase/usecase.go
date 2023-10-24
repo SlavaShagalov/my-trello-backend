@@ -9,7 +9,7 @@ type usecase struct {
 	repo cards.Repository
 }
 
-func NewUsecase(repo cards.Repository) cards.Usecase {
+func New(repo cards.Repository) cards.Usecase {
 	return &usecase{repo: repo}
 }
 

@@ -17,7 +17,7 @@ type usecase struct {
 	imgRepo images.Repository
 }
 
-func NewUsecase(repo boards.Repository, imgRepo images.Repository) boards.Usecase {
+func New(repo boards.Repository, imgRepo images.Repository) boards.Usecase {
 	return &usecase{
 		repo:    repo,
 		imgRepo: imgRepo,

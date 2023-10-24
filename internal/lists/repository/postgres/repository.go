@@ -16,7 +16,7 @@ type repository struct {
 	log *zap.Logger
 }
 
-func NewRepository(db *sql.DB, log *zap.Logger) pkgLists.Repository {
+func New(db *sql.DB, log *zap.Logger) pkgLists.Repository {
 	return &repository{db: db, log: log}
 }
 

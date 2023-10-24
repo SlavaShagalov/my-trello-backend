@@ -68,7 +68,7 @@ func TestUsecase_Create(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			list, err := uc.Create(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -146,7 +146,7 @@ func TestUsecase_List(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			serv := NewUsecase(f.repo)
+			serv := New(f.repo)
 			lists, err := serv.ListByBoard(test.boardID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -212,7 +212,7 @@ func TestUsecase_Get(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			list, err := uc.Get(test.id)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -262,7 +262,7 @@ func TestFullUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			list, err := uc.FullUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -320,7 +320,7 @@ func TestPartialUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			list, err := uc.PartialUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -374,7 +374,7 @@ func TestUsecase_Delete(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := NewUsecase(f.repo)
+			uc := New(f.repo)
 			err := uc.Delete(test.id)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)

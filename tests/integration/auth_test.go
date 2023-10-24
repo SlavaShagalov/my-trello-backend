@@ -49,7 +49,7 @@ func (s *AuthSuite) SetupSuite() {
 
 	s.usersRepo = usersRepository.New(s.db, s.log)
 	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log)
-	hasher := pkgHasher.NewHasher()
+	hasher := pkgHasher.New()
 	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher)
 }
 

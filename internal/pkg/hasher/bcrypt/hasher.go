@@ -7,7 +7,7 @@ import (
 
 type hasher struct{}
 
-func NewHasher() pkgHasher.Hasher {
+func New() pkgHasher.Hasher {
 	return &hasher{}
 }
 

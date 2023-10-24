@@ -34,8 +34,8 @@ func (s *CardsSuite) SetupSuite() {
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
-	repo := cardsRepo.NewRepository(s.db, s.logger)
-	s.uc = cardsUC.NewUsecase(repo)
+	repo := cardsRepo.New(s.db, s.logger)
+	s.uc = cardsUC.New(repo)
 }
 
 func (s *CardsSuite) TearDownSuite() {

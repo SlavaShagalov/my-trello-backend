@@ -34,8 +34,8 @@ func (s *ListsSuite) SetupSuite() {
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
-	repo := listsRepo.NewRepository(s.db, s.logger)
-	s.uc = listsUC.NewUsecase(repo)
+	repo := listsRepo.New(s.db, s.logger)
+	s.uc = listsUC.New(repo)
 }
 
 func (s *ListsSuite) TearDownSuite() {

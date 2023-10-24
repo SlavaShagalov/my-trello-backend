@@ -138,7 +138,7 @@ func (s *CardsSuite) TestList() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			cards, err := s.uc.List(test.userID)
+			cards, err := s.uc.ListByList(test.userID)
 
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 

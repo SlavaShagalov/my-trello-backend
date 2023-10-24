@@ -95,9 +95,9 @@ func (mr *MockUsecaseMockRecorder) Get(id interface{}) *gomock.Call {
 }
 
 // List mocks base method.
-func (m *MockUsecase) List(listID int) ([]models.Card, error) {
+func (m *MockUsecase) ListByList(listID int) ([]models.Card, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", listID)
+	ret := m.ctrl.Call(m, "ListByList", listID)
 	ret0, _ := ret[0].([]models.Card)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -106,7 +106,7 @@ func (m *MockUsecase) List(listID int) ([]models.Card, error) {
 // List indicates an expected call of List.
 func (mr *MockUsecaseMockRecorder) List(listID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUsecase)(nil).List), listID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByList", reflect.TypeOf((*MockUsecase)(nil).ListByList), listID)
 }
 
 // PartialUpdate mocks base method.

@@ -97,7 +97,7 @@ func (mr *MockRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 // List mocks base method.
 func (m *MockRepository) List(userID int) ([]models.Workspace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "ListByList", userID)
 	ret0, _ := ret[0].([]models.Workspace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -106,7 +106,7 @@ func (m *MockRepository) List(userID int) ([]models.Workspace, error) {
 // List indicates an expected call of List.
 func (mr *MockRepositoryMockRecorder) List(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByList", reflect.TypeOf((*MockRepository)(nil).List), userID)
 }
 
 // PartialUpdate mocks base method.

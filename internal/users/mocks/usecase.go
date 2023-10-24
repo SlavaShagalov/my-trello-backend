@@ -97,7 +97,7 @@ func (mr *MockUsecaseMockRecorder) GetByUsername(username interface{}) *gomock.C
 // List mocks base method.
 func (m *MockUsecase) List() ([]models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List")
+	ret := m.ctrl.Call(m, "ListByList")
 	ret0, _ := ret[0].([]models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -106,7 +106,7 @@ func (m *MockUsecase) List() ([]models.User, error) {
 // List indicates an expected call of List.
 func (mr *MockUsecaseMockRecorder) List() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUsecase)(nil).List))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByList", reflect.TypeOf((*MockUsecase)(nil).List))
 }
 
 // PartialUpdate mocks base method.

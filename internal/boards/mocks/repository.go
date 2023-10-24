@@ -97,7 +97,7 @@ func (mr *MockRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 // List mocks base method.
 func (m *MockRepository) List(workspaceID int) ([]models.Board, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", workspaceID)
+	ret := m.ctrl.Call(m, "ListByList", workspaceID)
 	ret0, _ := ret[0].([]models.Board)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -106,7 +106,7 @@ func (m *MockRepository) List(workspaceID int) ([]models.Board, error) {
 // List indicates an expected call of List.
 func (mr *MockRepositoryMockRecorder) List(workspaceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), workspaceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByList", reflect.TypeOf((*MockRepository)(nil).List), workspaceID)
 }
 
 // ListByTitle mocks base method.

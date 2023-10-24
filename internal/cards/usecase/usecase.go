@@ -17,8 +17,12 @@ func (uc *usecase) Create(params *cards.CreateParams) (models.Card, error) {
 	return uc.repo.Create(params)
 }
 
-func (uc *usecase) List(userID int) ([]models.Card, error) {
-	return uc.repo.List(userID)
+func (uc *usecase) ListByList(userID int) ([]models.Card, error) {
+	return uc.repo.ListByList(userID)
+}
+
+func (uc *usecase) ListByTitle(title string, userID int) ([]models.Card, error) {
+	return uc.repo.ListByTitle(title, userID)
 }
 
 func (uc *usecase) Get(id int) (models.Card, error) {

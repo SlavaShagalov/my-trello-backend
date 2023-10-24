@@ -6,6 +6,8 @@ include make/microservices.mk
 
 EASYJSON_PATHS = ./internal/...
 
+# ===== RUN =====
+
 .PHONY: deploy
 deploy:
 	docker compose -f docker-compose.yml up -d --build api
@@ -14,9 +16,17 @@ deploy:
 stop:
 	docker compose -f docker-compose.yml stop
 
+# ===== LOGS =====
+
 .PHONY: api-logs
 api-logs:
 	tail -f -n +1 cmd/api/logs/api.log | batcat --paging=never --language=log
+
+.PHONY: db-logs
+db-logs:
+	docker compose logs -f data-storage
+
+# ===== GENERATORS =====
 
 .PHONY: mocks
 mocks:
@@ -25,6 +35,8 @@ mocks:
 .PHONY: easyjson
 easyjson:
 	go generate ${EASYJSON_PATHS}
+
+# ===== TESTS =====
 
 .PHONY: unit-tests
 unit-tests:

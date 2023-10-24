@@ -102,7 +102,7 @@ const listByTitleCmd = `
 func (repo *repository) ListByTitle(title string, boardID int) ([]models.List, error) {
 	rows, err := repo.db.Query(listByTitleCmd, title, boardID)
 	if err != nil {
-		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listByTitleCmd),
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
 			zap.String("title", title), zap.Int("board_id", boardID))
 		return nil, pkgErrors.ErrDb
 	}

@@ -12,6 +12,7 @@ import (
 	"os"
 
 	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
+	cardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
 	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
 	listsRepository "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
@@ -20,12 +21,14 @@ import (
 
 	authUsecase "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"
 	boardsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
+	cardsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/cards/usecase"
 	listsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/lists/usecase"
 	usersUsecase "github.com/SlavaShagalov/my-trello-backend/internal/users/usecase"
 	workspacesUsecase "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/usecase"
 
 	authDel "github.com/SlavaShagalov/my-trello-backend/internal/auth/delivery/http"
 	boardsDel "github.com/SlavaShagalov/my-trello-backend/internal/boards/delivery/http"
+	cardsDel "github.com/SlavaShagalov/my-trello-backend/internal/cards/delivery/http"
 	listsDel "github.com/SlavaShagalov/my-trello-backend/internal/lists/delivery/http"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
 	usersDel "github.com/SlavaShagalov/my-trello-backend/internal/users/delivery/http"
@@ -83,12 +86,12 @@ func main() {
 	}()
 
 	// Sessions Storage
-	rdb, err := pStorages.NewRedis(logger, context.Background())
+	redisClient, err := pStorages.NewRedis(logger, context.Background())
 	if err != nil {
 		os.Exit(1)
 	}
 	defer func() {
-		err = rdb.Close()
+		err = redisClient.Close()
 		if err != nil {
 			logger.Error("Failed to close Redis client", zap.Error(err))
 		}
@@ -106,12 +109,12 @@ func main() {
 
 	// Repo
 	imagesRepo := imagesRepository.New(s3Client, logger)
-	sessionsRepo := sessionsRepository.New(rdb, context.Background(), logger)
+	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
 	usersRepo := usersRepository.New(db, logger)
 	workspacesRepo := workspacesRepository.New(db, logger)
 	boardsRepo := boardsRepository.New(db, logger)
 	listsRepo := listsRepository.NewRepository(db, logger)
-	//cardsRepo := cardsRepository.NewRepository(storages, logger)
+	cardsRepo := cardsRepository.NewRepository(db, logger)
 
 	// Use cases
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
@@ -119,7 +122,7 @@ func main() {
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
 	boardsUC := boardsUsecase.NewUsecase(boardsRepo, imagesRepo)
 	listsUC := listsUsecase.NewUsecase(listsRepo)
-	//cardsUC := cardsUsecase.NewUsecase(cardsRepo)
+	cardsUC := cardsUsecase.NewUsecase(cardsRepo)
 
 	// Middleware
 	checkAuth := mw.NewCheckAuth(authUC, logger)
@@ -135,6 +138,7 @@ func main() {
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth)
 	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth)
 	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth)
+	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth)
 
 	server := http.Server{
 		Addr:    constants.ApiAddress,

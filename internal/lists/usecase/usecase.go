@@ -17,8 +17,12 @@ func (uc *usecase) Create(params *lists.CreateParams) (models.List, error) {
 	return uc.repo.Create(params)
 }
 
-func (uc *usecase) List(userID int) ([]models.List, error) {
-	return uc.repo.List(userID)
+func (uc *usecase) ListByBoard(userID int) ([]models.List, error) {
+	return uc.repo.ListByBoard(userID)
+}
+
+func (uc *usecase) ListByTitle(title string, userID int) ([]models.List, error) {
+	return uc.repo.ListByTitle(title, userID)
 }
 
 func (uc *usecase) Get(id int) (models.List, error) {

@@ -57,7 +57,7 @@ const listCmd = `
 	WHERE board_id = $1
 	ORDER BY position;`
 
-func (repo *repository) List(boardID int) ([]models.List, error) {
+func (repo *repository) ListByBoard(boardID int) ([]models.List, error) {
 	rows, err := repo.db.Query(listCmd, boardID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd),
@@ -83,6 +83,48 @@ func (repo *repository) List(boardID int) ([]models.List, error) {
 			repo.log.Error(constants.DBScanError, zap.Error(err), zap.String("sql_query", listCmd),
 				zap.Int("board_id", boardID))
 			return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
+		}
+
+		lists = append(lists, list)
+	}
+
+	return lists, nil
+}
+
+const listByTitleCmd = `
+	SELECT l.id, l.board_id, l.title, l.position, l.created_at, l.updated_at
+	FROM lists l
+	JOIN boards b on b.id = l.board_id
+	JOIN workspaces w on w.id = b.workspace_id
+	WHERE lower(l.title) LIKE lower('%' || $1 || '%') AND w.user_id = $2
+	ORDER BY position;`
+
+func (repo *repository) ListByTitle(title string, boardID int) ([]models.List, error) {
+	rows, err := repo.db.Query(listByTitleCmd, title, boardID)
+	if err != nil {
+		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listByTitleCmd),
+			zap.String("title", title), zap.Int("board_id", boardID))
+		return nil, pkgErrors.ErrDb
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	lists := []models.List{}
+	var list models.List
+	for rows.Next() {
+		err = rows.Scan(
+			&list.ID,
+			&list.BoardID,
+			&list.Title,
+			&list.Position,
+			&list.CreatedAt,
+			&list.UpdatedAt,
+		)
+		if err != nil {
+			repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listByTitleCmd),
+				zap.String("title", title), zap.Int("board_id", boardID))
+			return nil, pkgErrors.ErrDb
 		}
 
 		lists = append(lists, list)

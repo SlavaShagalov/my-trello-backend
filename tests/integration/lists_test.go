@@ -131,7 +131,7 @@ func (s *ListsSuite) TestList() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			lists, err := s.uc.List(test.boardID)
+			lists, err := s.uc.ListByBoard(test.boardID)
 
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 

@@ -94,19 +94,34 @@ func (mr *MockRepositoryMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), id)
 }
 
-// List mocks base method.
-func (m *MockRepository) List(boardID int) ([]models.List, error) {
+// ListByBoard mocks base method.
+func (m *MockRepository) ListByBoard(boardID int) ([]models.List, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", boardID)
+	ret := m.ctrl.Call(m, "ListByBoard", boardID)
 	ret0, _ := ret[0].([]models.List)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List.
-func (mr *MockRepositoryMockRecorder) List(boardID interface{}) *gomock.Call {
+// ListByBoard indicates an expected call of ListByBoard.
+func (mr *MockRepositoryMockRecorder) ListByBoard(boardID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), boardID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByBoard", reflect.TypeOf((*MockRepository)(nil).ListByBoard), boardID)
+}
+
+// ListByTitle mocks base method.
+func (m *MockRepository) ListByTitle(title string, userID int) ([]models.List, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByTitle", title, userID)
+	ret0, _ := ret[0].([]models.List)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByTitle indicates an expected call of ListByTitle.
+func (mr *MockRepositoryMockRecorder) ListByTitle(title, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByTitle", reflect.TypeOf((*MockRepository)(nil).ListByTitle), title, userID)
 }
 
 // PartialUpdate mocks base method.

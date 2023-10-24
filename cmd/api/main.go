@@ -13,17 +13,20 @@ import (
 
 	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
 	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
+	listsRepository "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
 
 	authUsecase "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"
 	boardsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
+	listsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/lists/usecase"
 	usersUsecase "github.com/SlavaShagalov/my-trello-backend/internal/users/usecase"
 	workspacesUsecase "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/usecase"
 
 	authDel "github.com/SlavaShagalov/my-trello-backend/internal/auth/delivery/http"
 	boardsDel "github.com/SlavaShagalov/my-trello-backend/internal/boards/delivery/http"
+	listsDel "github.com/SlavaShagalov/my-trello-backend/internal/lists/delivery/http"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
 	usersDel "github.com/SlavaShagalov/my-trello-backend/internal/users/delivery/http"
 	workspacesDel "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/delivery/http"
@@ -107,16 +110,16 @@ func main() {
 	usersRepo := usersRepository.New(db, logger)
 	workspacesRepo := workspacesRepository.New(db, logger)
 	boardsRepo := boardsRepository.New(db, logger)
-	//listsRepo := listsRepository.New(storages, logger)
-	//cardsRepo := cardsRepository.New(storages, logger)
+	listsRepo := listsRepository.NewRepository(db, logger)
+	//cardsRepo := cardsRepository.NewRepository(storages, logger)
 
 	// Use cases
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
 	usersUC := usersUsecase.New(usersRepo, imagesRepo)
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
 	boardsUC := boardsUsecase.NewUsecase(boardsRepo, imagesRepo)
-	//listsUC := listsUsecase.New(listsRepo)
-	//cardsUC := cardsUsecase.New(cardsRepo)
+	listsUC := listsUsecase.NewUsecase(listsRepo)
+	//cardsUC := cardsUsecase.NewUsecase(cardsRepo)
 
 	// Middleware
 	checkAuth := mw.NewCheckAuth(authUC, logger)
@@ -131,6 +134,7 @@ func main() {
 	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth)
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth)
 	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth)
+	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth)
 
 	server := http.Server{
 		Addr:    constants.ApiAddress,

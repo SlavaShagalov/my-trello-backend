@@ -109,7 +109,7 @@ func (repo *repository) ListByTitle(title string, userID int) ([]models.Board, e
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
 			zap.String("title", title))
-		return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
+		return nil, pkgErrors.ErrDb
 	}
 	defer func() {
 		_ = rows.Close()

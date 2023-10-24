@@ -10,6 +10,8 @@ EASYJSON_PATHS = ./internal/...
 
 .PHONY: deploy
 deploy:
+	make format
+	make swag
 	docker compose -f docker-compose.yml up -d --build api
 
 .PHONY: stop
@@ -35,6 +37,16 @@ mocks:
 .PHONY: easyjson
 easyjson:
 	go generate ${EASYJSON_PATHS}
+
+.PHONY: swag
+swag:
+	swag init -g cmd/api/main.go
+
+# ===== FORMAT =====
+
+.PHONY: format
+format:
+	swag fmt
 
 # ===== TESTS =====
 

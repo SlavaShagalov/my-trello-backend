@@ -1,0 +1,161 @@
+basePath: /api/v1
+definitions:
+  http.JSONError:
+    properties:
+      error:
+        type: string
+    type: object
+  http.signInRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  http.signInResponse:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  http.signUpRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  http.signUpResponse:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost
+info:
+  contact:
+    email: my-trello-support@yandex.ru
+    name: MyTrello API Support
+    url: http://127.0.0.1/support
+  description: MyTrello API documentation.
+  termsOfService: http://127.0.0.1/terms
+  title: MyTrello API
+  version: "1.0"
+paths:
+  /auth/logout:
+    delete:
+      description: Logs out and deletes the authentication cookie.
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successfully logged out.
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Logs out and deletes the authentication cookie.
+      tags:
+      - auth
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Logs in and returns the authentication cookie
+      parameters:
+      - description: Successfully authenticated.
+        in: body
+        name: signInParams
+        required: true
+        schema:
+          $ref: '#/definitions/http.signInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: successfully auth
+          schema:
+            $ref: '#/definitions/http.signInResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Logs in and returns the authentication cookie
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates new user and returns authentication cookie.
+      parameters:
+      - description: Sign up params.
+        in: body
+        name: signUpParams
+        required: true
+        schema:
+          $ref: '#/definitions/http.signUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created user.
+          schema:
+            $ref: '#/definitions/http.signUpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Creates new user and returns authentication cookie.
+      tags:
+      - auth
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

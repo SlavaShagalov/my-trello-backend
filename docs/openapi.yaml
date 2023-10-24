@@ -1,7 +1,7 @@
 openapi: 3.0.0
 
 info:
-  title: Trello API
+  title: MyTrello API
   version: 0.1.9
   contact:
     name: Shagalov Veaceslav
@@ -30,7 +30,7 @@ paths:
         - Auth
       requestBody:
         required: true
-        description: A JSON object containing the sign in params.
+        description: Sign up params.
         content:
           application/json:
             schema:
@@ -62,7 +62,7 @@ paths:
       description: Logs in and returns the authentication cookie
       requestBody:
         required: true
-        description: A JSON object containing the sign up params.
+        description: Sign in params.
         content:
           application/json:
             schema:
@@ -96,6 +96,7 @@ paths:
   /auth/logout:
     delete:
       summary: Logs out and deletes the authentication cookie.
+      description: Logs out and deletes the authentication cookie.
       security:
         - cookieAuth: [ ]
       tags:

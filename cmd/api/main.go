@@ -34,11 +34,26 @@ import (
 	usersDel "github.com/SlavaShagalov/my-trello-backend/internal/users/delivery/http"
 	workspacesDel "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/delivery/http"
 
+	_ "github.com/SlavaShagalov/my-trello-backend/docs"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
 
+// @title						MyTrello API
+//
+// @version					1.0
+// @description				MyTrello API documentation.
+// @termsOfService				http://127.0.0.1/terms
+//
+// @contact.name				MyTrello API Support
+// @contact.url				http://127.0.0.1/support
+// @contact.email				my-trello-support@yandex.ru
+//
+// @host						localhost
+// @BasePath					/api/v1
+// @securityDefinitions.basic	BasicAuth
 func main() {
 	// Logger
 	logger, logfile, err := pLog.NewProdLogger("/logs/api.log")
@@ -140,11 +155,16 @@ func main() {
 	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth)
 	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth)
 
+	// Router
 	server := http.Server{
 		Addr:    constants.ApiAddress,
 		Handler: router,
 	}
 
+	// Swagger
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
+
+	// Start
 	logger.Info("API service started at", zap.String("address", constants.ApiAddress))
 	if err = server.ListenAndServe(); err != nil {
 		logger.Error("API server stopped %v", zap.Error(err))

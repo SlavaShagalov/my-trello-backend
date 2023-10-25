@@ -35,17 +35,19 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 	mux.HandleFunc(logoutPath, checkAuth(del.logout)).Methods(http.MethodDelete)
 }
 
-// @Summary		Creates new user and returns authentication cookie.
-// @Description	Creates new user and returns authentication cookie.
-// @Tags			auth
-// @Accept			json
-// @Produce		json
-// @Param			signUpParams	body		signUpRequest	true	"Sign up params."
-// @Success		200				{object}	signUpResponse	"Successfully created user."
-// @Failure		400				{object}	http.JSONError
-// @Failure		405
-// @Failure		500
-// @Router			/auth/signup [post]
+// signup godoc
+//
+//	@Summary		Creates new user and returns authentication cookie.
+//	@Description	Creates new user and returns authentication cookie.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			signUpParams	body		signUpRequest	true	"Sign up params."
+//	@Success		200				{object}	signUpResponse	"Successfully created user."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/auth/signup [post]
 func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 	body, err := pHTTP.ReadBody(r, del.log)
 	if err != nil {
@@ -80,18 +82,20 @@ func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
-// @Summary		Logs in and returns the authentication cookie
-// @Description	Logs in and returns the authentication cookie
-// @Tags			auth
-// @Accept			json
-// @Produce		json
-// @Param			signInParams	body		signInRequest	true	"Successfully authenticated."
-// @Success		200				{object}	signInResponse	"successfully auth"
-// @Failure		400				{object}	http.JSONError
-// @Failure		404				{object}	http.JSONError
-// @Failure		405
-// @Failure		500
-// @Router			/auth/signin [post]
+// signin godoc
+//
+//	@Summary		Logs in and returns the authentication cookie
+//	@Description	Logs in and returns the authentication cookie
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			signInParams	body		signInRequest	true	"Successfully authenticated."
+//	@Success		200				{object}	signInResponse	"successfully auth"
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		404				{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/auth/signin [post]
 func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 	body, err := pHTTP.ReadBody(r, del.log)
 	if err != nil {
@@ -124,16 +128,18 @@ func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
-// @Summary		Logs out and deletes the authentication cookie.
-// @Description	Logs out and deletes the authentication cookie.
-// @Tags			auth
-// @Produce		json
-// @Success		204	"Successfully logged out."
-// @Failure		400	{object}	http.JSONError
-// @Failure		401	{object}	http.JSONError
-// @Failure		405
-// @Failure		500
-// @Router			/auth/logout [delete]
+// logout godoc
+//
+//	@Summary		Logs out and deletes the authentication cookie.
+//	@Description	Logs out and deletes the authentication cookie.
+//	@Tags			auth
+//	@Produce		json
+//	@Success		204	"Successfully logged out."
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/auth/logout [delete]
 func (del *delivery) logout(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {

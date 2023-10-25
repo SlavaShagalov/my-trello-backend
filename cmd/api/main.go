@@ -41,19 +41,21 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title						MyTrello API
+// main godoc
 //
-// @version					1.0
-// @description				MyTrello API documentation.
-// @termsOfService				http://127.0.0.1/terms
+//	@title						MyTrello API
 //
-// @contact.name				MyTrello API Support
-// @contact.url				http://127.0.0.1/support
-// @contact.email				my-trello-support@yandex.ru
+//	@version					1.0
+//	@description				MyTrello API documentation.
+//	@termsOfService				http://127.0.0.1/terms
 //
-// @host						localhost
-// @BasePath					/api/v1
-// @securityDefinitions.basic	BasicAuth
+//	@contact.name				MyTrello API Support
+//	@contact.url				http://127.0.0.1/support
+//	@contact.email				my-trello-support@yandex.ru
+//
+//	@host						localhost
+//	@BasePath					/api/v1
+//	@securityDefinitions.basic	BasicAuth
 func main() {
 	// Logger
 	logger, logfile, err := pLog.NewProdLogger("/logs/api.log")

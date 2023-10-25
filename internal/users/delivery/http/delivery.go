@@ -37,6 +37,20 @@ func RegisterHandlers(mux *mux.Router, uc pUsers.Usecase, log *zap.Logger, check
 	mux.HandleFunc(avatarPath, checkAuth(del.updateAvatar)).Methods(http.MethodPut)
 }
 
+// get godoc
+//
+//	@Summary		Returns user with specified id
+//	@Description	Returns user with specified id
+//	@Tags			users
+//	@Produce		json
+//	@Param			id	path		int			true	"User ID"
+//	@Success		200	{object}	getResponse	"User data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/users/{id} [get]
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -55,6 +69,23 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// partialUpdate godoc
+//
+//	@Summary		Partial update of user
+//	@Description	Partial update of user
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		int						true	"User ID"
+//	@Param			UserUpdateData	body		partialUpdateRequest	true	"User data to update"
+//	@Success		200				{object}	getResponse				"Updated user data"
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
+//	@Failure		403				{object}	http.JSONError
+//	@Failure		404				{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/users/{id} [patch]
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -100,6 +131,23 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// updateAvatar godoc
+//
+//	@Summary		Update user avatar
+//	@Description	Update user avatar
+//	@Tags			users
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			id		path		int			true	"User ID"
+//	@Param			avatar	body		[]byte		true	"Avatar"
+//	@Success		200		{object}	getResponse	"Updated user data"
+//	@Failure		400		{object}	http.JSONError
+//	@Failure		401		{object}	http.JSONError
+//	@Failure		403		{object}	http.JSONError
+//	@Failure		404		{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/users/{id}/avatar [put]
 func (del *delivery) updateAvatar(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])

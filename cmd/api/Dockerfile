@@ -7,7 +7,8 @@ RUN CGO_ENABLED=0 go mod download
 FROM install AS build
 WORKDIR /src
 COPY . ./
-RUN CGO_ENABLED=0 go build -o /bin/api cmd/api/main.go
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -o /bin/api cmd/api/main.go
 
 FROM scratch AS api
 WORKDIR /

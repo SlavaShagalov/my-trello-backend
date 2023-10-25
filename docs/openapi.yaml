@@ -143,7 +143,7 @@ paths:
       summary: Partial update of user
       description: Partial update of user
       requestBody:
-        description: A JSON object containing the data to update user.
+        description: User data to update
         required: true
         content:
           application/json:
@@ -151,7 +151,7 @@ paths:
               $ref: "#/components/schemas/PartialUpdateUser"
       responses:
         "200":
-          description: A JSON object of updated user.
+          description: Updated user data
           content:
             application/json:
               schema:

@@ -43,6 +43,21 @@ func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, log *zap.Logger, check
 	mux.HandleFunc(listPath, checkAuth(del.delete)).Methods(http.MethodDelete)
 }
 
+// create godoc
+//
+//	@Summary		Create a new list
+//	@Description	Create a new list
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int			true	"Board ID"
+//	@Param			ListCreateData	body		createRequest	true	"List create data"
+//	@Success		200					{object}	createResponse	"Created list data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id}/lists [post]
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -79,6 +94,19 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// listByWorkspace godoc
+//
+//	@Summary		Returns lists by board id
+//	@Description	Returns lists by board id
+//	@Tags			boards
+//	@Produce		json
+//	@Param			id	path		int			true	"Board ID"
+//	@Success		200	{object}	listResponse	"Lists data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id}/lists [get]
 func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -97,6 +125,19 @@ func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// list godoc
+//
+//	@Summary		Returns lists by board id
+//	@Description	Returns lists by board id
+//	@Tags			lists
+//	@Produce		json
+//	@Param			title	query		string			true	"Title filter"
+//	@Success		200	{object}	listResponse	"Lists data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/lists [get]
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -116,6 +157,20 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// get godoc
+//
+//	@Summary		Returns list by id
+//	@Description	Returns list by id
+//	@Tags			lists
+//	@Produce		json
+//	@Param			id	path		int			true	"Board ID"
+//	@Success		200	{object}	getResponse	"Board data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/lists/{id} [get]
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -134,6 +189,21 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// partialUpdate godoc
+//
+//	@Summary		Partial update of list
+//	@Description	Partial update of list
+//	@Tags			lists
+//	@Accept			json
+//	@Produce		json
+//	@Param			id					path		int						true	"List ID"
+//	@Param			ListUpdateData	body		partialUpdateRequest	true	"List data to update"
+//	@Success		200					{object}	getResponse				"Updated list data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/lists/{id}  [patch]
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -179,6 +249,20 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// delete godoc
+//
+//	@Summary		Delete list by id
+//	@Description	Delete list by id
+//	@Tags			lists
+//	@Produce		json
+//	@Param			id	path	int	true	"List ID"
+//	@Success		204	"List deleted successfully"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/lists/{id} [delete]
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])

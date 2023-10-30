@@ -25,7 +25,7 @@ type cardResponse struct {
 	Cards []models.Card `json:"cards"`
 }
 
-func newCardResponse(cards []models.Card) *cardResponse {
+func newListResponse(cards []models.Card) *cardResponse {
 	return &cardResponse{
 		Cards: cards,
 	}

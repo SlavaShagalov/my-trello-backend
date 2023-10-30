@@ -48,6 +48,21 @@ func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, chec
 	mux.HandleFunc(boardPath, checkAuth(del.delete)).Methods(http.MethodDelete)
 }
 
+// create godoc
+//
+//	@Summary		Create a new board
+//	@Description	Create a new board
+//	@Tags			workspaces
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int			true	"Workspace ID"
+//	@Param			BoardCreateData	body		createRequest	true	"Board create data"
+//	@Success		200					{object}	createResponse	"Created board data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces/{id}/boards [post]
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -85,6 +100,19 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// listByWorkspace godoc
+//
+//	@Summary		Returns boards by workspace id
+//	@Description	Returns boards by workspace id
+//	@Tags			workspaces
+//	@Produce		json
+//	@Param			id	path		int			true	"Workspace ID"
+//	@Success		200	{object}	listResponse	"Boards data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces/{id}/boards [get]
 func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -103,6 +131,19 @@ func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// list godoc
+//
+//	@Summary		Returns boards by workspace id
+//	@Description	Returns boards by workspace id
+//	@Tags			boards
+//	@Produce		json
+//	@Param			title	query		string			true	"Title filter"
+//	@Success		200	{object}	listResponse	"Boards data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards [get]
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -122,6 +163,20 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// get godoc
+//
+//	@Summary		Returns board by id
+//	@Description	Returns board by id
+//	@Tags			boards
+//	@Produce		json
+//	@Param			id	path		int			true	"Board ID"
+//	@Success		200	{object}	getResponse	"Board data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id} [get]
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -140,6 +195,21 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// partialUpdate godoc
+//
+//	@Summary		Partial update of board
+//	@Description	Partial update of board
+//	@Tags			boards
+//	@Accept			json
+//	@Produce		json
+//	@Param			id					path		int						true	"Board ID"
+//	@Param			BoardUpdateData	body		partialUpdateRequest	true	"Board data to update"
+//	@Success		200					{object}	getResponse				"Updated board data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id}  [patch]
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -181,6 +251,23 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// updateAvatar godoc
+//
+//	@Summary		Update board background
+//	@Description	Update board background
+//	@Tags			boards
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			id		path		int			true	"Board ID"
+//	@Param			background	body		[]byte		true	"Background"
+//	@Success		200		{object}	getResponse	"Updated board data"
+//	@Failure		400		{object}	http.JSONError
+//	@Failure		401		{object}	http.JSONError
+//	@Failure		403		{object}	http.JSONError
+//	@Failure		404		{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id}/background [put]
 func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -213,6 +300,20 @@ func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// delete godoc
+//
+//	@Summary		Delete board by id
+//	@Description	Delete board by id
+//	@Tags			boards
+//	@Produce		json
+//	@Param			id	path	int	true	"Board ID"
+//	@Success		204	"Board deleted successfully"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/boards/{id} [delete]
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])

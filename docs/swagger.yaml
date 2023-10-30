@@ -83,6 +83,68 @@ definitions:
       username:
         type: string
     type: object
+  internal_workspaces_delivery_http.createRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_workspaces_delivery_http.createResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_workspaces_delivery_http.getResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_workspaces_delivery_http.listResponse:
+    properties:
+      workspaces:
+        items:
+          $ref: '#/definitions/models.Workspace'
+        type: array
+    type: object
+  internal_workspaces_delivery_http.partialUpdateRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  models.Workspace:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
 host: localhost
 info:
   contact:
@@ -311,6 +373,169 @@ paths:
       summary: Update user avatar
       tags:
       - users
+  /workspaces:
+    get:
+      description: Returns all workspaces with boards of current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Workspaces data
+          schema:
+            $ref: '#/definitions/internal_workspaces_delivery_http.listResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns all workspaces with boards of current user
+      tags:
+      - workspaces
+    post:
+      consumes:
+      - application/json
+      description: Create a new workspace
+      parameters:
+      - description: Workspace create data
+        in: body
+        name: WorkspaceCreateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workspaces_delivery_http.createRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created workspace data.
+          schema:
+            $ref: '#/definitions/internal_workspaces_delivery_http.createResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Create a new workspace
+      tags:
+      - workspaces
+  /workspaces/{id}:
+    delete:
+      description: Delete workspace by id
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Workspace deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Delete workspace by id
+      tags:
+      - workspaces
+    get:
+      description: Returns workspace by id
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Workspace data
+          schema:
+            $ref: '#/definitions/internal_workspaces_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns workspace by id
+      tags:
+      - workspaces
+    patch:
+      consumes:
+      - application/json
+      description: Partial update of workspace
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Workspace data to update
+        in: body
+        name: WorkspaceUpdateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_workspaces_delivery_http.partialUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated workspace data.
+          schema:
+            $ref: '#/definitions/internal_workspaces_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Partial update of workspace
+      tags:
+      - workspaces
 securityDefinitions:
   BasicAuth:
     type: basic

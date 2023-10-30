@@ -37,6 +37,20 @@ func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, 
 	mux.HandleFunc(workspacePath, checkAuth(del.delete)).Methods(http.MethodDelete)
 }
 
+// create godoc
+//
+//	@Summary		Create a new workspace
+//	@Description	Create a new workspace
+//	@Tags			workspaces
+//	@Accept			json
+//	@Produce		json
+//	@Param			WorkspaceCreateData	body		createRequest	true	"Workspace create data"
+//	@Success		200					{object}	createResponse	"Created workspace data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces [post]
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -73,6 +87,18 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// list godoc
+//
+//	@Summary		Returns all workspaces with boards of current user
+//	@Description	Returns all workspaces with boards of current user
+//	@Tags			workspaces
+//	@Produce		json
+//	@Success		200	{object}	listResponse	"Workspaces data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces [get]
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -90,6 +116,20 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// get godoc
+//
+//	@Summary		Returns workspace by id
+//	@Description	Returns workspace by id
+//	@Tags			workspaces
+//	@Produce		json
+//	@Param			id	path		int			true	"Workspace ID"
+//	@Success		200	{object}	getResponse	"Workspace data"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces/{id} [get]
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -108,6 +148,21 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// partialUpdate godoc
+//
+//	@Summary		Partial update of workspace
+//	@Description	Partial update of workspace
+//	@Tags			workspaces
+//	@Accept			json
+//	@Produce		json
+//	@Param			id					path		int						true	"Workspace ID"
+//	@Param			WorkspaceUpdateData	body		partialUpdateRequest	true	"Workspace data to update"
+//	@Success		200					{object}	getResponse				"Updated workspace data."
+//	@Failure		400					{object}	http.JSONError
+//	@Failure		401					{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces/{id}  [patch]
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -149,6 +204,20 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 
+// delete godoc
+//
+//	@Summary		Delete workspace by id
+//	@Description	Delete workspace by id
+//	@Tags			workspaces
+//	@Produce		json
+//	@Param			id	path	int	true	"Workspace ID"
+//	@Success		204	"Workspace deleted successfully"
+//	@Failure		400	{object}	http.JSONError
+//	@Failure		401	{object}	http.JSONError
+//	@Failure		404	{object}	http.JSONError
+//	@Failure		405
+//	@Failure		500
+//	@Router			/workspaces/{id} [delete]
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])

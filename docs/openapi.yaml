@@ -219,7 +219,7 @@ paths:
               $ref: "#/components/schemas/CreateWorkspace"
       responses:
         "200":
-          description: A JSON object of created workspace.
+          description: Created workspace data.
           content:
             application/json:
               schema:
@@ -265,7 +265,7 @@ paths:
       description: Returns workspace by id
       responses:
         "200":
-          description: A JSON object of workspace.
+          description: Workspace data
           content:
             application/json:
               schema:
@@ -312,8 +312,8 @@ paths:
     delete:
       tags:
         - Workspaces
-      summary: Delete workspace
-      description: Delete workspace
+      summary: Delete workspace by id
+      description: Delete workspace by id
       responses:
         "204":
           description: Workspace deleted successfully.

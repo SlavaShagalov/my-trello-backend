@@ -50,11 +50,11 @@ func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, check
 //	@Tags			cards
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int			true	"List ID"
+//	@Param			id				path		int				true	"List ID"
 //	@Param			ListCreateData	body		createRequest	true	"List create data"
-//	@Success		200					{object}	createResponse	"Created card data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	createResponse	"Created card data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id}/cards [post]
@@ -101,7 +101,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Description	Returns cards by card id
 //	@Tags			cards
 //	@Produce		json
-//	@Param			id	path		int			true	"Board ID"
+//	@Param			id	path		int				true	"Board ID"
 //	@Success		200	{object}	cardResponse	"Lists data"
 //	@Failure		400	{object}	http.JSONError
 //	@Failure		401	{object}	http.JSONError
@@ -133,9 +133,9 @@ func (del *delivery) listByList(w http.ResponseWriter, r *http.Request) {
 //	@Tags			cards
 //	@Produce		json
 //	@Param			title	query		string			true	"Title filter"
-//	@Success		200	{object}	cardResponse	"Lists data"
-//	@Failure		400	{object}	http.JSONError
-//	@Failure		401	{object}	http.JSONError
+//	@Success		200		{object}	cardResponse	"Lists data"
+//	@Failure		400		{object}	http.JSONError
+//	@Failure		401		{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards [get]
@@ -197,11 +197,11 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Tags			cards
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path		int						true	"Card ID"
+//	@Param			id				path		int						true	"Card ID"
 //	@Param			ListUpdateData	body		partialUpdateRequest	true	"Card data to update"
-//	@Success		200					{object}	getResponse				"Updated card data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	getResponse				"Updated card data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards/{id}  [patch]

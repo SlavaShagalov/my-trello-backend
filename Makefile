@@ -12,7 +12,7 @@ EASYJSON_PATHS = ./internal/...
 deploy:
 	make format
 	make swag
-	docker compose -f docker-compose.yml up -d --build api
+	docker compose -f docker-compose.yml up -d --build ds-admin api balancer
 
 .PHONY: stop
 stop:
@@ -27,6 +27,10 @@ api-logs:
 .PHONY: db-logs
 db-logs:
 	docker compose logs -f data-storage
+
+.PHONY: balancer-logs
+balancer-logs:
+	docker compose logs -f balancer
 
 # ===== GENERATORS =====
 

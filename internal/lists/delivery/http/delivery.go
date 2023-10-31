@@ -50,11 +50,11 @@ func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, log *zap.Logger, check
 //	@Tags			lists
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int			true	"Board ID"
+//	@Param			id				path		int				true	"Board ID"
 //	@Param			ListCreateData	body		createRequest	true	"List create data"
-//	@Success		200					{object}	createResponse	"Created list data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	createResponse	"Created list data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}/lists [post]
@@ -100,7 +100,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Description	Returns lists by board id
 //	@Tags			boards
 //	@Produce		json
-//	@Param			id	path		int			true	"Board ID"
+//	@Param			id	path		int				true	"Board ID"
 //	@Success		200	{object}	listResponse	"Lists data"
 //	@Failure		400	{object}	http.JSONError
 //	@Failure		401	{object}	http.JSONError
@@ -132,9 +132,9 @@ func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 //	@Tags			lists
 //	@Produce		json
 //	@Param			title	query		string			true	"Title filter"
-//	@Success		200	{object}	listResponse	"Lists data"
-//	@Failure		400	{object}	http.JSONError
-//	@Failure		401	{object}	http.JSONError
+//	@Success		200		{object}	listResponse	"Lists data"
+//	@Failure		400		{object}	http.JSONError
+//	@Failure		401		{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists [get]
@@ -196,11 +196,11 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Tags			lists
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path		int						true	"List ID"
+//	@Param			id				path		int						true	"List ID"
 //	@Param			ListUpdateData	body		partialUpdateRequest	true	"List data to update"
-//	@Success		200					{object}	getResponse				"Updated list data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	getResponse				"Updated list data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id}  [patch]

@@ -55,11 +55,11 @@ func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, chec
 //	@Tags			workspaces
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int			true	"Workspace ID"
+//	@Param			id				path		int				true	"Workspace ID"
 //	@Param			BoardCreateData	body		createRequest	true	"Board create data"
-//	@Success		200					{object}	createResponse	"Created board data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	createResponse	"Created board data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id}/boards [post]
@@ -106,7 +106,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Description	Returns boards by workspace id
 //	@Tags			workspaces
 //	@Produce		json
-//	@Param			id	path		int			true	"Workspace ID"
+//	@Param			id	path		int				true	"Workspace ID"
 //	@Success		200	{object}	listResponse	"Boards data"
 //	@Failure		400	{object}	http.JSONError
 //	@Failure		401	{object}	http.JSONError
@@ -138,9 +138,9 @@ func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 //	@Tags			boards
 //	@Produce		json
 //	@Param			title	query		string			true	"Title filter"
-//	@Success		200	{object}	listResponse	"Boards data"
-//	@Failure		400	{object}	http.JSONError
-//	@Failure		401	{object}	http.JSONError
+//	@Success		200		{object}	listResponse	"Boards data"
+//	@Failure		400		{object}	http.JSONError
+//	@Failure		401		{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards [get]
@@ -202,11 +202,11 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Tags			boards
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path		int						true	"Board ID"
+//	@Param			id				path		int						true	"Board ID"
 //	@Param			BoardUpdateData	body		partialUpdateRequest	true	"Board data to update"
-//	@Success		200					{object}	getResponse				"Updated board data."
-//	@Failure		400					{object}	http.JSONError
-//	@Failure		401					{object}	http.JSONError
+//	@Success		200				{object}	getResponse				"Updated board data."
+//	@Failure		400				{object}	http.JSONError
+//	@Failure		401				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}  [patch]
@@ -258,13 +258,13 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Tags			boards
 //	@Accept			mpfd
 //	@Produce		json
-//	@Param			id		path		int			true	"Board ID"
+//	@Param			id			path		int			true	"Board ID"
 //	@Param			background	body		[]byte		true	"Background"
-//	@Success		200		{object}	getResponse	"Updated board data"
-//	@Failure		400		{object}	http.JSONError
-//	@Failure		401		{object}	http.JSONError
-//	@Failure		403		{object}	http.JSONError
-//	@Failure		404		{object}	http.JSONError
+//	@Success		200			{object}	getResponse	"Updated board data"
+//	@Failure		400			{object}	http.JSONError
+//	@Failure		401			{object}	http.JSONError
+//	@Failure		403			{object}	http.JSONError
+//	@Failure		404			{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}/background [put]

@@ -2,22 +2,21 @@ package main
 
 import (
 	"context"
+	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
+	cardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
+	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
+	listsRepository "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
 	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
-	"log"
-	"net/http"
-	"os"
-
-	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
-	cardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
-	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
-	listsRepository "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
+	"log"
+	"net/http"
+	"os"
 
 	authUsecase "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"
 	boardsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
@@ -143,11 +142,9 @@ func main() {
 
 	// Middleware
 	checkAuth := mw.NewCheckAuth(authUC, logger)
+	accessLog := mw.NewAccessLog(logger)
 
 	router := mux.NewRouter()
-	router.Use(
-		mw.NewAccessLog(logger),
-	)
 
 	// Delivery
 	authDel.RegisterHandlers(router, authUC, logger, checkAuth)
@@ -157,14 +154,14 @@ func main() {
 	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth)
 	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth)
 
+	// Swagger
+	router.PathPrefix(constants.ApiPrefix + "/swagger/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
+
 	// Router
 	server := http.Server{
 		Addr:    constants.ApiAddress,
-		Handler: router,
+		Handler: accessLog(router),
 	}
-
-	// Swagger
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
 
 	// Start
 	logger.Info("API service started at", zap.String("address", constants.ApiAddress))

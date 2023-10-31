@@ -5,6 +5,13 @@ definitions:
       error:
         type: string
     type: object
+  http.cardResponse:
+    properties:
+      cards:
+        items:
+          $ref: '#/definitions/models.Card'
+        type: array
+    type: object
   http.signInRequest:
     properties:
       password:
@@ -55,6 +62,158 @@ definitions:
       updated_at:
         type: string
       username:
+        type: string
+    type: object
+  internal_boards_delivery_http.createRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_boards_delivery_http.createResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_boards_delivery_http.getResponse:
+    properties:
+      background:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_boards_delivery_http.listResponse:
+    properties:
+      boards:
+        items:
+          $ref: '#/definitions/models.Board'
+        type: array
+    type: object
+  internal_boards_delivery_http.partialUpdateRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_cards_delivery_http.createRequest:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+    type: object
+  internal_cards_delivery_http.createResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      list_id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_cards_delivery_http.getResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      list_id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_cards_delivery_http.partialUpdateRequest:
+    properties:
+      content:
+        type: string
+      list_id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+    type: object
+  internal_lists_delivery_http.createRequest:
+    properties:
+      title:
+        type: string
+    type: object
+  internal_lists_delivery_http.createResponse:
+    properties:
+      board_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_lists_delivery_http.getResponse:
+    properties:
+      board_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_lists_delivery_http.listResponse:
+    properties:
+      lists:
+        items:
+          $ref: '#/definitions/models.List'
+        type: array
+    type: object
+  internal_lists_delivery_http.partialUpdateRequest:
+    properties:
+      board_id:
+        type: integer
+      position:
+        type: integer
+      title:
         type: string
     type: object
   internal_users_delivery_http.getResponse:
@@ -128,6 +287,55 @@ definitions:
       description:
         type: string
       title:
+        type: string
+    type: object
+  models.Board:
+    properties:
+      background:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      workspace_id:
+        type: integer
+    type: object
+  models.Card:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      list_id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.List:
+    properties:
+      board_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
   models.Workspace:
@@ -243,6 +451,602 @@ paths:
       summary: Creates new user and returns authentication cookie.
       tags:
       - auth
+  /boards:
+    get:
+      description: Returns boards by workspace id
+      parameters:
+      - description: Title filter
+        in: query
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Boards data
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.listResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns boards by workspace id
+      tags:
+      - boards
+  /boards/{id}:
+    delete:
+      description: Delete board by id
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Board deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Delete board by id
+      tags:
+      - boards
+    get:
+      description: Returns board by id
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Board data
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns board by id
+      tags:
+      - boards
+    patch:
+      consumes:
+      - application/json
+      description: Partial update of board
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Board data to update
+        in: body
+        name: BoardUpdateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_boards_delivery_http.partialUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated board data.
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Partial update of board
+      tags:
+      - boards
+  /boards/{id}/background:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update board background
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Background
+        in: body
+        name: background
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated board data
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Update board background
+      tags:
+      - boards
+  /boards/{id}/lists:
+    get:
+      description: Returns lists by board id
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lists data
+          schema:
+            $ref: '#/definitions/internal_lists_delivery_http.listResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns lists by board id
+      tags:
+      - boards
+    post:
+      consumes:
+      - application/json
+      description: Create a new list
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: List create data
+        in: body
+        name: ListCreateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_lists_delivery_http.createRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created list data.
+          schema:
+            $ref: '#/definitions/internal_lists_delivery_http.createResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Create a new list
+      tags:
+      - lists
+  /cards:
+    get:
+      description: Returns cards by list id
+      parameters:
+      - description: Title filter
+        in: query
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lists data
+          schema:
+            $ref: '#/definitions/http.cardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns cards by list id
+      tags:
+      - cards
+  /cards/{id}:
+    delete:
+      description: Delete card by id
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Card deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Delete card by id
+      tags:
+      - cards
+    get:
+      description: Returns card by id
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card data
+          schema:
+            $ref: '#/definitions/internal_cards_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns card by id
+      tags:
+      - cards
+    patch:
+      consumes:
+      - application/json
+      description: Partial update of card
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Card data to update
+        in: body
+        name: ListUpdateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_cards_delivery_http.partialUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated card data.
+          schema:
+            $ref: '#/definitions/internal_cards_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Partial update of card
+      tags:
+      - cards
+  /cards/{id}/cards:
+    get:
+      description: Returns cards by card id
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lists data
+          schema:
+            $ref: '#/definitions/http.cardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns cards by card id
+      tags:
+      - cards
+  /lists:
+    get:
+      description: Returns lists by board id
+      parameters:
+      - description: Title filter
+        in: query
+        name: title
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lists data
+          schema:
+            $ref: '#/definitions/internal_lists_delivery_http.listResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns lists by board id
+      tags:
+      - lists
+  /lists/{id}:
+    delete:
+      description: Delete list by id
+      parameters:
+      - description: List ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: List deleted successfully
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Delete list by id
+      tags:
+      - lists
+    get:
+      description: Returns list by id
+      parameters:
+      - description: Board ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Board data
+          schema:
+            $ref: '#/definitions/internal_lists_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns list by id
+      tags:
+      - lists
+    patch:
+      consumes:
+      - application/json
+      description: Partial update of list
+      parameters:
+      - description: List ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: List data to update
+        in: body
+        name: ListUpdateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_lists_delivery_http.partialUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated list data.
+          schema:
+            $ref: '#/definitions/internal_lists_delivery_http.getResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Partial update of list
+      tags:
+      - lists
+  /lists/{id}/cards:
+    post:
+      consumes:
+      - application/json
+      description: Create a new card
+      parameters:
+      - description: List ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: List create data
+        in: body
+        name: ListCreateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_cards_delivery_http.createRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created card data.
+          schema:
+            $ref: '#/definitions/internal_cards_delivery_http.createResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Create a new card
+      tags:
+      - cards
   /users/{id}:
     get:
       description: Returns user with specified id
@@ -534,6 +1338,75 @@ paths:
         "500":
           description: Internal Server Error
       summary: Partial update of workspace
+      tags:
+      - workspaces
+  /workspaces/{id}/boards:
+    get:
+      description: Returns boards by workspace id
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Boards data
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.listResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Returns boards by workspace id
+      tags:
+      - workspaces
+    post:
+      consumes:
+      - application/json
+      description: Create a new board
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Board create data
+        in: body
+        name: BoardCreateData
+        required: true
+        schema:
+          $ref: '#/definitions/internal_boards_delivery_http.createRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created board data.
+          schema:
+            $ref: '#/definitions/internal_boards_delivery_http.createResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.JSONError'
+        "405":
+          description: Method Not Allowed
+        "500":
+          description: Internal Server Error
+      summary: Create a new board
       tags:
       - workspaces
 securityDefinitions:

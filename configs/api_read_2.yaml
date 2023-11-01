@@ -1,4 +1,5 @@
 # Server
+NAME: read_2
 PORT: 8002
 
 # Postgres

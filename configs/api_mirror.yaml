@@ -1,13 +1,13 @@
 # Server
-NAME: read_1
-PORT: 8001
+NAME: mirror
+PORT: 8003
 
 # Postgres
-PG_HOST: data-storage
-PG_PORT: 5432
+PG_HOST: data-storage-rep
+PG_PORT: 5433
 PG_DB: trello_db
-PG_USER: reader
-PG_PASSWORD: 1111
+PG_USER: moderator
+PG_PASSWORD: 2222
 PG_SSL_MODE: disable
 
 # Redis

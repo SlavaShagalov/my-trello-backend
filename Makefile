@@ -12,7 +12,7 @@ EASYJSON_PATHS = ./internal/...
 deploy:
 	make format
 	make swag
-	docker compose -f docker-compose.yml up -d --build ds-admin api-main api-read-1 api-read-2 balancer
+	docker compose -f docker-compose.yml up -d --build data-storage-rep ds-admin api-main api-read-1 api-read-2 api-mirror balancer
 
 .PHONY: stop
 stop:
@@ -20,13 +20,29 @@ stop:
 
 # ===== LOGS =====
 
-.PHONY: api-logs
-api-logs:
-	tail -f -n +1 cmd/api/logs/api.log | batcat --paging=never --language=log
+.PHONY: api-main-logs
+api-main-logs:
+	tail -f -n +1 cmd/api/logs/main.log | batcat --paging=never --language=log
+
+.PHONY: api-1-logs
+api-1-logs:
+	tail -f -n +1 cmd/api/logs/read_1.log | batcat --paging=never --language=log
+
+.PHONY: api-2-logs
+api-2-logs:
+	tail -f -n +1 cmd/api/logs/read_2.log | batcat --paging=never --language=log
+
+.PHONY: mirror-logs
+mirror-logs:
+	tail -f -n +1 cmd/api/logs/mirror.log | batcat --paging=never --language=log
 
 .PHONY: db-logs
 db-logs:
 	docker compose logs -f data-storage
+
+.PHONY: db-rep-logs
+db-rep-logs:
+	docker compose logs -f data-storage-rep
 
 .PHONY: balancer-logs
 balancer-logs:

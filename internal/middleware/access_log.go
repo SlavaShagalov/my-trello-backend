@@ -13,6 +13,9 @@ func NewAccessLog(log *zap.Logger) func(handler http.Handler) http.Handler {
 				zap.String("url", r.URL.String()),
 				zap.String("protocol", r.Proto),
 				zap.String("origin", r.Header.Get("Origin")))
+
+			w.Header().Set("Server", "MyTrello")
+
 			handler.ServeHTTP(w, r)
 		})
 	}

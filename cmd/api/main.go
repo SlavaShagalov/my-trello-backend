@@ -56,8 +56,22 @@ import (
 //	@BasePath					/api/v1
 //	@securityDefinitions.basic	BasicAuth
 func main() {
+	// Config
+	config.SetDefaultPostgresConfig()
+	config.SetDefaultRedisConfig()
+	config.SetDefaultS3Config()
+	config.SetDefaultValidationConfig()
+	viper.SetConfigName("api")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("/configs")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Printf("Failed to read configuration: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Logger
-	logger, logfile, err := pLog.NewProdLogger("/logs/api.log")
+	logger, logfile, err := pLog.NewProdLogger("/logs/" + viper.GetString(config.ServerName) + ".log")
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -73,20 +87,6 @@ func main() {
 		}
 	}()
 	logger.Info("API service starting...")
-
-	// Config
-	config.SetDefaultPostgresConfig()
-	config.SetDefaultRedisConfig()
-	config.SetDefaultS3Config()
-	config.SetDefaultValidationConfig()
-	viper.SetConfigName("api")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("/configs")
-	err = viper.ReadInConfig()
-	if err != nil {
-		logger.Error("Failed to read configuration", zap.Error(err))
-		os.Exit(1)
-	}
 
 	// Data Storage
 	db, err := pStorages.NewPostgres(logger)
@@ -159,12 +159,12 @@ func main() {
 
 	// Router
 	server := http.Server{
-		Addr:    ":" + viper.GetString(config.Port),
+		Addr:    ":" + viper.GetString(config.ServerPort),
 		Handler: accessLog(router),
 	}
 
 	// Start
-	logger.Info("API service started", zap.String("port", viper.GetString(config.Port)))
+	logger.Info("API service started", zap.String("port", viper.GetString(config.ServerPort)))
 	if err = server.ListenAndServe(); err != nil {
 		logger.Error("API server stopped", zap.Error(err))
 	}

@@ -2,7 +2,8 @@ package config
 
 // Server
 const (
-	Port = "PORT"
+	ServerName = "NAME"
+	ServerPort = "PORT"
 )
 
 // Postgres

@@ -1,4 +1,5 @@
 # Server
+NAME: main
 PORT: 8000
 
 # Postgres

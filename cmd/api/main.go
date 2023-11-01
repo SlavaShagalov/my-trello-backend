@@ -159,13 +159,13 @@ func main() {
 
 	// Router
 	server := http.Server{
-		Addr:    constants.ApiAddress,
+		Addr:    ":" + viper.GetString(config.Port),
 		Handler: accessLog(router),
 	}
 
 	// Start
-	logger.Info("API service started at", zap.String("address", constants.ApiAddress))
+	logger.Info("API service started", zap.String("port", viper.GetString(config.Port)))
 	if err = server.ListenAndServe(); err != nil {
-		logger.Error("API server stopped %v", zap.Error(err))
+		logger.Error("API server stopped", zap.Error(err))
 	}
 }

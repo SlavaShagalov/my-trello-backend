@@ -1,5 +1,10 @@
 package config
 
+// Server
+const (
+	Port = "PORT"
+)
+
 // Postgres
 const (
 	PostgresHost     = "PG_HOST"

@@ -26,7 +26,7 @@ func NewProdLogger(filePath string) (*zap.Logger, *os.File, error) {
 	cfg := ProdConfig()
 
 	fileEncoder := zapcore.NewConsoleEncoder(cfg)
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, nil, err
 	}

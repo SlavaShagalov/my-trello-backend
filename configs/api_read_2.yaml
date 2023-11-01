@@ -1,9 +1,12 @@
+# Server
+PORT: 8002
+
 # Postgres
 PG_HOST: data-storage
 PG_PORT: 5432
 PG_DB: trello_db
-PG_USER: slava
-PG_PASSWORD: 1234
+PG_USER: reader
+PG_PASSWORD: 1111
 PG_SSL_MODE: disable
 
 # Redis

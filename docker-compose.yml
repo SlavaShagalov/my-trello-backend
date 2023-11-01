@@ -9,11 +9,12 @@ services:
     restart: always
     environment:
       POSTGRES_DB: "trello_db"
-      POSTGRES_USER: "slava"
-      POSTGRES_PASSWORD: "1234"
+      POSTGRES_USER: "moderator"
+      POSTGRES_PASSWORD: "2222"
     volumes:
       - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/1.sql
-      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/2.sql
+      - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/2.sql
+      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/3.sql
     ports:
       - "5432:5432"
     networks:
@@ -39,12 +40,12 @@ services:
 
   # === Services ===
 
-  api:
+  api-main:
     image: trello_api
     build:
       context: .
       dockerfile: ./cmd/api/Dockerfile
-    container_name: trello_api
+    container_name: trello_api_main
     ports:
       - "8000:8000"
     depends_on:
@@ -52,8 +53,68 @@ services:
       - sessions-storage
     volumes:
       - ./cmd/api/logs:/logs
-      - ./configs/api.yaml:/configs/api.yaml
+      - ./configs/api_main.yaml:/configs/api.yaml
       - ./.aws:/root/.aws
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  api-read-1:
+    image: trello_api
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    container_name: trello_api_read_1
+    ports:
+      - "8001:8001"
+    depends_on:
+      - data-storage
+      - sessions-storage
+    volumes:
+      - ./cmd/api/logs:/logs
+      - ./configs/api_read_1.yaml:/configs/api.yaml
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  api-read-2:
+    image: trello_api
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    container_name: trello_api_read_2
+    ports:
+      - "8002:8002"
+    depends_on:
+      - data-storage
+      - sessions-storage
+    volumes:
+      - ./cmd/api/logs:/logs
+      - ./configs/api_read_2.yaml:/configs/api.yaml
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  api-mirror:
+    image: trello_api
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    container_name: trello_api_mirror
+    ports:
+      - "8003:8003"
+    depends_on:
+      - data-storage
+      - sessions-storage
+    volumes:
+      - ./cmd/api/logs:/logs
+      - ./configs/api_main.yaml:/configs/api_main.yaml
     networks:
       - trello-network
     deploy:
@@ -70,7 +131,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - api
+      - api-main
+      - api-read-1
+      - api-read-2
     networks:
       - trello-network
     deploy:

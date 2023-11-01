@@ -12,7 +12,7 @@ EASYJSON_PATHS = ./internal/...
 deploy:
 	make format
 	make swag
-	docker compose -f docker-compose.yml up -d --build ds-admin api balancer
+	docker compose -f docker-compose.yml up -d --build ds-admin api-main api-read-1 api-read-2 balancer
 
 .PHONY: stop
 stop:

@@ -12,7 +12,8 @@ EASYJSON_PATHS = ./internal/...
 deploy:
 	make format
 	make swag
-	docker compose -f docker-compose.yml up -d --build data-storage-rep ds-admin api-main api-read-1 api-read-2 api-mirror balancer
+	#docker compose -f docker-compose.yml up -d --build data-storage-rep ds-admin api-main api-read-1 api-read-2 api-mirror balancer
+	docker compose -f docker-compose.yml up -d --build ds-admin api-main balancer
 
 .PHONY: stop
 stop:

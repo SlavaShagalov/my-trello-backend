@@ -47,7 +47,7 @@ func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, log *zap.Logger, check
 //
 //	@Summary		Create a new list
 //	@Description	Create a new list
-//	@Tags			lists
+//	@Tags			boards
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		int				true	"Board ID"
@@ -58,6 +58,8 @@ func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, log *zap.Logger, check
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}/lists [post]
+//
+//	@Security		cookieAuth
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -107,6 +109,8 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}/lists [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -138,6 +142,8 @@ func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -171,6 +177,8 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id} [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -204,6 +212,8 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id}  [patch]
+//
+//	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -263,6 +273,8 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id} [delete]
+//
+//	@Security		cookieAuth
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])

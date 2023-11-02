@@ -140,6 +140,8 @@ func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/auth/logout [delete]
+//
+//	@Security		cookieAuth
 func (del *delivery) logout(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {

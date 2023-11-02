@@ -63,6 +63,8 @@ func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, chec
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id}/boards [post]
+//
+//	@Security		cookieAuth
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -113,6 +115,8 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id}/boards [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -144,6 +148,8 @@ func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -177,6 +183,8 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id} [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -210,6 +218,8 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}  [patch]
+//
+//	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
@@ -259,7 +269,7 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Accept			mpfd
 //	@Produce		json
 //	@Param			id			path		int			true	"Board ID"
-//	@Param			background	body		[]byte		true	"Background"
+//	@Param			background	formData	file		true	"Background"
 //	@Success		200			{object}	getResponse	"Updated board data"
 //	@Failure		400			{object}	http.JSONError
 //	@Failure		401			{object}	http.JSONError
@@ -268,6 +278,8 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id}/background [put]
+//
+//	@Security		cookieAuth
 func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -314,6 +326,8 @@ func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/boards/{id} [delete]
+//
+//	@Security		cookieAuth
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])

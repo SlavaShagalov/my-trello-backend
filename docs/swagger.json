@@ -11,11 +11,16 @@
         },
         "version": "1.0"
     },
-    "host": "localhost",
+    "host": "127.0.0.1",
     "basePath": "/api/v1",
     "paths": {
         "/auth/logout": {
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Logs out and deletes the authentication cookie.",
                 "produces": [
                     "application/json"
@@ -149,6 +154,11 @@
         },
         "/boards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns boards by workspace id",
                 "produces": [
                     "application/json"
@@ -196,6 +206,11 @@
         },
         "/boards/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns board by id",
                 "produces": [
                     "application/json"
@@ -247,6 +262,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete board by id",
                 "produces": [
                     "application/json"
@@ -295,6 +315,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of board",
                 "consumes": [
                     "application/json"
@@ -354,6 +379,11 @@
         },
         "/boards/{id}/background": {
             "put": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Update board background",
                 "consumes": [
                     "multipart/form-data"
@@ -374,16 +404,11 @@
                         "required": true
                     },
                     {
+                        "type": "file",
                         "description": "Background",
                         "name": "background",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        }
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -428,6 +453,11 @@
         },
         "/boards/{id}/lists": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns lists by board id",
                 "produces": [
                     "application/json"
@@ -473,6 +503,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new list",
                 "consumes": [
                     "application/json"
@@ -481,7 +516,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "lists"
+                    "boards"
                 ],
                 "summary": "Create a new list",
                 "parameters": [
@@ -532,6 +567,11 @@
         },
         "/cards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns cards by list id",
                 "produces": [
                     "application/json"
@@ -579,6 +619,11 @@
         },
         "/cards/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns card by id",
                 "produces": [
                     "application/json"
@@ -630,6 +675,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete card by id",
                 "produces": [
                     "application/json"
@@ -678,6 +728,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of card",
                 "consumes": [
                     "application/json"
@@ -735,55 +790,13 @@
                 }
             }
         },
-        "/cards/{id}/cards": {
-            "get": {
-                "description": "Returns cards by card id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cards"
-                ],
-                "summary": "Returns cards by card id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Board ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lists data",
-                        "schema": {
-                            "$ref": "#/definitions/http.cardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.JSONError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/http.JSONError"
-                        }
-                    },
-                    "405": {
-                        "description": "Method Not Allowed"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
         "/lists": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns lists by board id",
                 "produces": [
                     "application/json"
@@ -831,6 +844,11 @@
         },
         "/lists/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns list by id",
                 "produces": [
                     "application/json"
@@ -882,6 +900,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete list by id",
                 "produces": [
                     "application/json"
@@ -930,6 +953,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of list",
                 "consumes": [
                     "application/json"
@@ -988,7 +1016,62 @@
             }
         },
         "/lists/{id}/cards": {
+            "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "description": "Returns cards by card id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Returns cards by card id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Board ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lists data",
+                        "schema": {
+                            "$ref": "#/definitions/http.cardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.JSONError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.JSONError"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new card",
                 "consumes": [
                     "application/json"
@@ -997,7 +1080,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "cards"
+                    "lists"
                 ],
                 "summary": "Create a new card",
                 "parameters": [
@@ -1048,6 +1131,11 @@
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns user with specified id",
                 "produces": [
                     "application/json"
@@ -1099,6 +1187,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of user",
                 "consumes": [
                     "application/json"
@@ -1170,6 +1263,11 @@
         },
         "/users/{id}/avatar": {
             "put": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Update user avatar",
                 "consumes": [
                     "multipart/form-data"
@@ -1244,6 +1342,11 @@
         },
         "/workspaces": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns all workspaces with boards of current user",
                 "produces": [
                     "application/json"
@@ -1280,6 +1383,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new workspace",
                 "consumes": [
                     "application/json"
@@ -1332,6 +1440,11 @@
         },
         "/workspaces/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns workspace by id",
                 "produces": [
                     "application/json"
@@ -1383,6 +1496,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete workspace by id",
                 "produces": [
                     "application/json"
@@ -1431,6 +1549,11 @@
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of workspace",
                 "consumes": [
                     "application/json"
@@ -1490,6 +1613,11 @@
         },
         "/workspaces/{id}/boards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns boards by workspace id",
                 "produces": [
                     "application/json"
@@ -1535,6 +1663,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new board",
                 "consumes": [
                     "application/json"
@@ -2141,8 +2274,10 @@
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "cookieAuth": {
+            "type": "apiKey",
+            "name": "JSESSIONID",
+            "in": "cookie"
         }
     }
 }

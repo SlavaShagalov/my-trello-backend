@@ -22,6 +22,11 @@ const docTemplate = `{
     "paths": {
         "/auth/logout": {
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Logs out and deletes the authentication cookie.",
                 "produces": [
                     "application/json"
@@ -155,6 +160,11 @@ const docTemplate = `{
         },
         "/boards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns boards by workspace id",
                 "produces": [
                     "application/json"
@@ -202,6 +212,11 @@ const docTemplate = `{
         },
         "/boards/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns board by id",
                 "produces": [
                     "application/json"
@@ -253,6 +268,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete board by id",
                 "produces": [
                     "application/json"
@@ -301,6 +321,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of board",
                 "consumes": [
                     "application/json"
@@ -360,6 +385,11 @@ const docTemplate = `{
         },
         "/boards/{id}/background": {
             "put": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Update board background",
                 "consumes": [
                     "multipart/form-data"
@@ -380,16 +410,11 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "file",
                         "description": "Background",
                         "name": "background",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        }
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -434,6 +459,11 @@ const docTemplate = `{
         },
         "/boards/{id}/lists": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns lists by board id",
                 "produces": [
                     "application/json"
@@ -479,6 +509,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new list",
                 "consumes": [
                     "application/json"
@@ -487,7 +522,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "lists"
+                    "boards"
                 ],
                 "summary": "Create a new list",
                 "parameters": [
@@ -538,6 +573,11 @@ const docTemplate = `{
         },
         "/cards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns cards by list id",
                 "produces": [
                     "application/json"
@@ -585,6 +625,11 @@ const docTemplate = `{
         },
         "/cards/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns card by id",
                 "produces": [
                     "application/json"
@@ -636,6 +681,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete card by id",
                 "produces": [
                     "application/json"
@@ -684,6 +734,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of card",
                 "consumes": [
                     "application/json"
@@ -741,55 +796,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/cards/{id}/cards": {
-            "get": {
-                "description": "Returns cards by card id",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cards"
-                ],
-                "summary": "Returns cards by card id",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Board ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Lists data",
-                        "schema": {
-                            "$ref": "#/definitions/http.cardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.JSONError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/http.JSONError"
-                        }
-                    },
-                    "405": {
-                        "description": "Method Not Allowed"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
         "/lists": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns lists by board id",
                 "produces": [
                     "application/json"
@@ -837,6 +850,11 @@ const docTemplate = `{
         },
         "/lists/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns list by id",
                 "produces": [
                     "application/json"
@@ -888,6 +906,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete list by id",
                 "produces": [
                     "application/json"
@@ -936,6 +959,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of list",
                 "consumes": [
                     "application/json"
@@ -994,7 +1022,62 @@ const docTemplate = `{
             }
         },
         "/lists/{id}/cards": {
+            "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "description": "Returns cards by card id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lists"
+                ],
+                "summary": "Returns cards by card id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Board ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lists data",
+                        "schema": {
+                            "$ref": "#/definitions/http.cardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.JSONError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.JSONError"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new card",
                 "consumes": [
                     "application/json"
@@ -1003,7 +1086,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "cards"
+                    "lists"
                 ],
                 "summary": "Create a new card",
                 "parameters": [
@@ -1054,6 +1137,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns user with specified id",
                 "produces": [
                     "application/json"
@@ -1105,6 +1193,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of user",
                 "consumes": [
                     "application/json"
@@ -1176,6 +1269,11 @@ const docTemplate = `{
         },
         "/users/{id}/avatar": {
             "put": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Update user avatar",
                 "consumes": [
                     "multipart/form-data"
@@ -1250,6 +1348,11 @@ const docTemplate = `{
         },
         "/workspaces": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns all workspaces with boards of current user",
                 "produces": [
                     "application/json"
@@ -1286,6 +1389,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new workspace",
                 "consumes": [
                     "application/json"
@@ -1338,6 +1446,11 @@ const docTemplate = `{
         },
         "/workspaces/{id}": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns workspace by id",
                 "produces": [
                     "application/json"
@@ -1389,6 +1502,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Delete workspace by id",
                 "produces": [
                     "application/json"
@@ -1437,6 +1555,11 @@ const docTemplate = `{
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Partial update of workspace",
                 "consumes": [
                     "application/json"
@@ -1496,6 +1619,11 @@ const docTemplate = `{
         },
         "/workspaces/{id}/boards": {
             "get": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Returns boards by workspace id",
                 "produces": [
                     "application/json"
@@ -1541,6 +1669,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ],
                 "description": "Create a new board",
                 "consumes": [
                     "application/json"
@@ -2147,8 +2280,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "cookieAuth": {
+            "type": "apiKey",
+            "name": "JSESSIONID",
+            "in": "cookie"
         }
     }
 }`
@@ -2156,7 +2291,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost",
+	Host:             "127.0.0.1",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "MyTrello API",

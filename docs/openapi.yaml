@@ -1223,7 +1223,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: SESSIONID
+      name: JSESSIONID
   responses:
     ErrResponseBadRequest:
       description: Bad request

@@ -51,6 +51,8 @@ func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, 
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces [post]
+//
+//	@Security		cookieAuth
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -99,6 +101,8 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -130,6 +134,8 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id} [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -163,6 +169,8 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id}  [patch]
+//
+//	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
@@ -218,6 +226,8 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/workspaces/{id} [delete]
+//
+//	@Security		cookieAuth
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])

@@ -68,7 +68,7 @@ func (repo *repository) List(workspaceID int) ([]models.Board, error) {
 	boards := []models.Board{}
 	var board models.Board
 	var description sql.NullString
-	var background *sql.NullString
+	background := new(sql.NullString)
 	for rows.Next() {
 		err = rows.Scan(
 			&board.ID,

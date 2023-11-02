@@ -52,9 +52,12 @@ import (
 //	@contact.url				http://127.0.0.1/support
 //	@contact.email				my-trello-support@yandex.ru
 //
-//	@host						localhost
+//	@host						127.0.0.1
 //	@BasePath					/api/v1
-//	@securityDefinitions.basic	BasicAuth
+//	@securitydefinitions.apikey	cookieAuth
+//
+//	@in							cookie
+//	@name						JSESSIONID
 func main() {
 	// Config
 	config.SetDefaultPostgresConfig()

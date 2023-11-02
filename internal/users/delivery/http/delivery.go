@@ -51,6 +51,8 @@ func RegisterHandlers(mux *mux.Router, uc pUsers.Usecase, log *zap.Logger, check
 //	@Failure		405
 //	@Failure		500
 //	@Router			/users/{id} [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -86,6 +88,8 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/users/{id} [patch]
+//
+//	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
@@ -148,6 +152,8 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/users/{id}/avatar [put]
+//
+//	@Security		cookieAuth
 func (del *delivery) updateAvatar(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])

@@ -47,7 +47,7 @@ func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, check
 //
 //	@Summary		Create a new card
 //	@Description	Create a new card
-//	@Tags			cards
+//	@Tags			lists
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		int				true	"List ID"
@@ -58,6 +58,8 @@ func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, check
 //	@Failure		405
 //	@Failure		500
 //	@Router			/lists/{id}/cards [post]
+//
+//	@Security		cookieAuth
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -99,7 +101,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Returns cards by card id
 //	@Description	Returns cards by card id
-//	@Tags			cards
+//	@Tags			lists
 //	@Produce		json
 //	@Param			id	path		int				true	"Board ID"
 //	@Success		200	{object}	cardResponse	"Lists data"
@@ -107,7 +109,9 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Failure		401	{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
-//	@Router			/cards/{id}/cards [get]
+//	@Router			/lists/{id}/cards [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) listByList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	listID, err := strconv.Atoi(vars["id"])
@@ -139,6 +143,8 @@ func (del *delivery) listByList(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
@@ -172,6 +178,8 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards/{id} [get]
+//
+//	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cardID, err := strconv.Atoi(vars["id"])
@@ -205,6 +213,8 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards/{id}  [patch]
+//
+//	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cardID, err := strconv.Atoi(vars["id"])
@@ -268,6 +278,8 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/cards/{id} [delete]
+//
+//	@Security		cookieAuth
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cardID, err := strconv.Atoi(vars["id"])

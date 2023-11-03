@@ -50,7 +50,7 @@ import (
 //
 //	@contact.name				MyTrello API Support
 //	@contact.url				http://127.0.0.1/support
-//	@contact.email				my-trello-support@yandex.ru
+//	@contact.email				my-trello-support@vk.com
 //
 //	@host						127.0.0.1
 //	@BasePath					/api/v1

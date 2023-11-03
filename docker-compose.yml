@@ -11,9 +11,6 @@ services:
       POSTGRES_DB: "trello_db"
       POSTGRES_USER: "moderator"
       POSTGRES_PASSWORD: "2222"
-      POSTGRESQL_REPLICATION_MODE: master
-      POSTGRESQL_REPLICATION_USER: repl_user
-      POSTGRESQL_REPLICATION_PASSWORD: repl_password
     volumes:
       - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/1.sql
       - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/2.sql
@@ -25,27 +22,27 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-
-  data-storage-rep:
-    image: postgres:alpine3.18
-    container_name: trello_storage_rep
-    restart: always
-    environment:
-      POSTGRES_DB: "trello_db"
-      POSTGRES_USER: "moderator"
-      POSTGRES_PASSWORD: "2222"
-      POSTGRESQL_REPLICATION_MODE: slave
-      POSTGRESQL_REPLICATION_USER: repl_user
-      POSTGRESQL_REPLICATION_PASSWORD: repl_password
-      POSTGRESQL_MASTER_PORT_NUMBER: 5432
-    ports:
-      - "5433:5433"
-    command: -p 5433
-    networks:
-      - trello-network
-    deploy:
-      restart_policy:
-        condition: on-failure
+#
+#  data-storage-rep:
+#    image: postgres:alpine3.18
+#    container_name: trello_storage_rep
+#    restart: always
+#    environment:
+#      POSTGRES_DB: "trello_db"
+#      POSTGRES_USER: "moderator"
+#      POSTGRES_PASSWORD: "2222"
+#      POSTGRESQL_REPLICATION_MODE: slave
+#      POSTGRESQL_REPLICATION_USER: repl_user
+#      POSTGRESQL_REPLICATION_PASSWORD: repl_password
+#      POSTGRESQL_MASTER_PORT_NUMBER: 5432
+#    ports:
+#      - "5433:5433"
+#    command: -p 5433
+#    networks:
+#      - trello-network
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
 
   sessions-storage:
     image: redis:alpine3.18
@@ -125,25 +122,25 @@ services:
       restart_policy:
         condition: on-failure
 
-  api-mirror:
-    image: trello_api
-    build:
-      context: .
-      dockerfile: ./cmd/api/Dockerfile
-    container_name: trello_api_mirror
-    ports:
-      - "8003:8003"
-    depends_on:
-      - data-storage-rep
-      - sessions-storage
-    volumes:
-      - ./cmd/api/logs:/logs
-      - ./configs/api_mirror.yaml:/configs/api.yaml
-    networks:
-      - trello-network
-    deploy:
-      restart_policy:
-        condition: on-failure
+#  api-mirror:
+#    image: trello_api
+#    build:
+#      context: .
+#      dockerfile: ./cmd/api/Dockerfile
+#    container_name: trello_api_mirror
+#    ports:
+#      - "8003:8003"
+#    depends_on:
+#      - data-storage
+#      - sessions-storage
+#    volumes:
+#      - ./cmd/api/logs:/logs
+#      - ./configs/api_mirror.yaml:/configs/api.yaml
+#    networks:
+#      - trello-network
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
 
   balancer:
     image: nginx:1.22.1
@@ -156,8 +153,6 @@ services:
       - "80:80"
     depends_on:
       - api-main
-      - api-read-1
-      - api-read-2
     networks:
       - trello-network
     deploy:

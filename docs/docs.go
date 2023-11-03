@@ -13,7 +13,7 @@ const docTemplate = `{
         "contact": {
             "name": "MyTrello API Support",
             "url": "http://127.0.0.1/support",
-            "email": "my-trello-support@yandex.ru"
+            "email": "my-trello-support@vk.com"
         },
         "version": "{{.Version}}"
     },

@@ -12,3 +12,7 @@ coverage.html
 .aws
 
 static/README.md
+
+# Docker Postgres data
+pgdata
+archive

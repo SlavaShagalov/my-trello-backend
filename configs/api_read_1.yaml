@@ -3,7 +3,7 @@ NAME: read_1
 PORT: 8001
 
 # Postgres
-PG_HOST: data-storage
+PG_HOST: db
 PG_PORT: 5432
 PG_DB: trello_db
 PG_USER: reader

@@ -1,4 +1,3 @@
-include make/db.mk
 include make/test_db.mk
 include make/redis.mk
 include make/test_redis.mk
@@ -13,8 +12,12 @@ deploy:
 	make format
 	make swag
 	#docker compose -f docker-compose.yml up -d --build data-storage-rep ds-admin api-main api-read-1 api-read-2 api-mirror balancer
-	docker compose -f docker-compose.yml up -d --build ds-admin api-main api-read-1 api-read-2 balancer
+	docker compose -f docker-compose.yml up -d --build db-repl ds-admin api-main api-read-1 api-read-2 balancer
 	#docker compose -f docker-compose.yml up -d --build ds-admin api-main balancer
+
+.PHONY: db-up
+db-up:
+	docker compose -f docker-compose.yml up -d --build db db-repl
 
 .PHONY: stop
 stop:

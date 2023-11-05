@@ -3,7 +3,7 @@ NAME: mirror
 PORT: 8003
 
 # Postgres
-PG_HOST: data-storage-rep
+PG_HOST: db
 PG_PORT: 5433
 PG_DB: trello_db
 PG_USER: moderator

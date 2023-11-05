@@ -3,46 +3,59 @@ version: "3.9"
 services:
   # === Storages ===
 
-  data-storage:
-    image: postgres:alpine3.18
-    container_name: trello_storage
+  db:
+    image: postgres
+    container_name: trello_db
     restart: always
     environment:
       POSTGRES_DB: "trello_db"
       POSTGRES_USER: "moderator"
       POSTGRES_PASSWORD: "2222"
+      PGDATA: "/var/lib/postgresql/data"
     volumes:
-      - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/1.sql
-      - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/2.sql
-      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/3.sql
+      - ./postgres/primary/pgdata:/var/lib/postgresql/data
+      - ./postgres/primary/archive:/mnt/server/archive
+      - ./postgres/pg_hba.conf:/configs/pg_hba.conf
+      - ./postgres/master.conf:/configs/postgresql.conf
+      - ./scripts/migrations/master_setup.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/2.sql
+      - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/3.sql
+      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/4.sql
+      - ./postgres/copy_conf.sh:/docker-entrypoint-initdb.d/5.sh
     ports:
       - "5432:5432"
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.2
     deploy:
       restart_policy:
         condition: on-failure
-#
-#  data-storage-rep:
-#    image: postgres:alpine3.18
-#    container_name: trello_storage_rep
-#    restart: always
-#    environment:
-#      POSTGRES_DB: "trello_db"
-#      POSTGRES_USER: "moderator"
-#      POSTGRES_PASSWORD: "2222"
-#      POSTGRESQL_REPLICATION_MODE: slave
-#      POSTGRESQL_REPLICATION_USER: repl_user
-#      POSTGRESQL_REPLICATION_PASSWORD: repl_password
-#      POSTGRESQL_MASTER_PORT_NUMBER: 5432
-#    ports:
-#      - "5433:5433"
-#    command: -p 5433
-#    networks:
-#      - trello-network
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
+
+  db-repl:
+    image: postgres
+    container_name: trello_db_repl
+    restart: always
+    command: "postgres -c config_file=/configs/postgresql.conf"
+    environment:
+      POSTGRES_DB: "trello_db"
+      POSTGRES_USER: "moderator"
+      POSTGRES_PASSWORD: "2222"
+      PGDATA: "/var/lib/postgresql/data"
+    volumes:
+      - ./postgres/standby/pgdata:/var/lib/postgresql/data
+      - ./postgres/pg_hba.conf:/configs/pg_hba.conf
+      - ./postgres/slave.conf:/configs/postgresql.conf
+      - ./postgres/copy_conf.sh:/docker-entrypoint-initdb.d/5.sh
+    ports:
+      - "5433:5432"
+    depends_on:
+      - db
+    networks:
+      trello-network:
+        ipv4_address: 192.168.0.3
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   sessions-storage:
     image: redis:alpine3.18
@@ -70,7 +83,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - data-storage
+      - db
       - sessions-storage
     volumes:
       - ./cmd/api/logs:/logs
@@ -87,11 +100,11 @@ services:
     build:
       context: .
       dockerfile: ./cmd/api/Dockerfile
-    container_name: trello_api_read_1
+    container_name: trello_api_r1
     ports:
       - "8001:8001"
     depends_on:
-      - data-storage
+      - db
       - sessions-storage
     volumes:
       - ./cmd/api/logs:/logs
@@ -107,11 +120,11 @@ services:
     build:
       context: .
       dockerfile: ./cmd/api/Dockerfile
-    container_name: trello_api_read_2
+    container_name: trello_api_r2
     ports:
       - "8002:8002"
     depends_on:
-      - data-storage
+      - db
       - sessions-storage
     volumes:
       - ./cmd/api/logs:/logs
@@ -167,7 +180,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: trello_ds_admin
     depends_on:
-      - data-storage
+      - db
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@vk.com
       PGADMIN_DEFAULT_PASSWORD: 1234
@@ -179,5 +192,8 @@ services:
 
 networks:
   trello-network:
-    driver: bridge
     name: trello_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24

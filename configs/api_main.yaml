@@ -3,7 +3,7 @@ NAME: main
 PORT: 8000
 
 # Postgres
-PG_HOST: data-storage
+PG_HOST: db
 PG_PORT: 5432
 PG_DB: trello_db
 PG_USER: moderator

@@ -4,7 +4,7 @@ PORT: 8003
 
 # Postgres
 PG_HOST: db
-PG_PORT: 5433
+PG_PORT: 5432
 PG_DB: trello_db
 PG_USER: moderator
 PG_PASSWORD: 2222

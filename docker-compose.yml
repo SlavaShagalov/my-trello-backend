@@ -15,13 +15,13 @@ services:
     volumes:
       - ./postgres/primary/pgdata:/var/lib/postgresql/data
       - ./postgres/primary/archive:/mnt/server/archive
-      - ./postgres/pg_hba.conf:/configs/pg_hba.conf
-      - ./postgres/master.conf:/configs/postgresql.conf
-      - ./scripts/migrations/master_setup.sql:/docker-entrypoint-initdb.d/1.sql
-      - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/2.sql
-      - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/3.sql
-      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/4.sql
-      - ./postgres/copy_conf.sh:/docker-entrypoint-initdb.d/5.sh
+      - ./postgres/primary/postgresql.conf:/configs/postgresql.conf
+      - ./postgres/primary/pg_hba.conf:/configs/pg_hba.conf
+      - ./postgres/prepare.sh:/docker-entrypoint-initdb.d/1.sh
+      - ./scripts/migrations/master_setup.sql:/docker-entrypoint-initdb.d/2.sql
+      - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/3.sql
+      - ./scripts/migrations/create_users.sql:/docker-entrypoint-initdb.d/4.sql
+      - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/5.sql
     ports:
       - "5432:5432"
     networks:
@@ -43,9 +43,8 @@ services:
       PGDATA: "/var/lib/postgresql/data"
     volumes:
       - ./postgres/standby/pgdata:/var/lib/postgresql/data
-      - ./postgres/pg_hba.conf:/configs/pg_hba.conf
-      - ./postgres/slave.conf:/configs/postgresql.conf
-      - ./postgres/copy_conf.sh:/docker-entrypoint-initdb.d/5.sh
+      - ./postgres/standby/postgresql.conf:/configs/postgresql.conf
+      - ./postgres/standby/pg_hba.conf:/configs/pg_hba.conf
     ports:
       - "5433:5432"
     depends_on:
@@ -67,7 +66,8 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.4
     deploy:
       restart_policy:
         condition: on-failure
@@ -90,7 +90,8 @@ services:
       - ./configs/api_main.yaml:/configs/api.yaml
       - ./.aws:/root/.aws
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.5
     deploy:
       restart_policy:
         condition: on-failure
@@ -110,7 +111,8 @@ services:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_1.yaml:/configs/api.yaml
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.6
     deploy:
       restart_policy:
         condition: on-failure
@@ -130,30 +132,32 @@ services:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_2.yaml:/configs/api.yaml
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.7
     deploy:
       restart_policy:
         condition: on-failure
 
-#  api-mirror:
-#    image: trello_api
-#    build:
-#      context: .
-#      dockerfile: ./cmd/api/Dockerfile
-#    container_name: trello_api_mirror
-#    ports:
-#      - "8003:8003"
-#    depends_on:
-#      - data-storage
-#      - sessions-storage
-#    volumes:
-#      - ./cmd/api/logs:/logs
-#      - ./configs/api_mirror.yaml:/configs/api.yaml
-#    networks:
-#      - trello-network
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
+  api-mirror:
+    image: trello_api
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    container_name: trello_api_mirror
+    ports:
+      - "8003:8003"
+    depends_on:
+      - db
+      - sessions-storage
+    volumes:
+      - ./cmd/api/logs:/logs
+      - ./configs/api_mirror.yaml:/configs/api.yaml
+    networks:
+      trello-network:
+        ipv4_address: 192.168.0.8
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   balancer:
     image: trello_balancer
@@ -171,7 +175,8 @@ services:
     depends_on:
       - api-main
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.9
     deploy:
       restart_policy:
         condition: on-failure
@@ -185,7 +190,8 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@vk.com
       PGADMIN_DEFAULT_PASSWORD: 1234
     networks:
-      - trello-network
+      trello-network:
+        ipv4_address: 192.168.0.10
     deploy:
       restart_policy:
         condition: on-failure

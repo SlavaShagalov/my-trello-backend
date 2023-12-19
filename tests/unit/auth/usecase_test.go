@@ -1,22 +1,52 @@
-package usecase
+package auth
 
 import (
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	"github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"testing"
+
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
+
 	pkgAuth "github.com/SlavaShagalov/my-trello-backend/internal/auth"
+	authUsecase "github.com/SlavaShagalov/my-trello-backend/internal/auth/usecase"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
-	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
-	"github.com/pkg/errors"
 
 	hasherMocks "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/mocks"
 	sessionsMocks "github.com/SlavaShagalov/my-trello-backend/internal/sessions/mocks"
 	usersMocks "github.com/SlavaShagalov/my-trello-backend/internal/users/mocks"
-
-	"github.com/golang/mock/gomock"
-	"testing"
 )
 
-func TestUsecase_SignIn(t *testing.T) {
+type AuthUsecaseSuite struct {
+	suite.Suite
+	logger *zap.Logger
+}
+
+func (s *AuthUsecaseSuite) BeforeAll(t provider.T) {
+	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
+
+	s.logger = pkgZap.NewTestLogger()
+}
+
+func (s *AuthUsecaseSuite) AfterAll(t provider.T) {
+	t.WithNewStep("TearDownSuite step", func(ctx provider.StepCtx) {})
+
+	_ = s.logger.Sync()
+}
+
+func (s *AuthUsecaseSuite) BeforeEach(t provider.T) {
+	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *AuthUsecaseSuite) AfterEach(t provider.T) {
+	t.WithNewStep("TearDownTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *AuthUsecaseSuite) TestSignIn(t provider.T) {
 	type fields struct {
 		usersRepo    *usersMocks.MockRepository
 		sessionsRepo *sessionsMocks.MockRepository
@@ -61,7 +91,7 @@ func TestUsecase_SignIn(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -79,8 +109,7 @@ func TestUsecase_SignIn(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
-			uc := New(f.usersRepo, f.sessionsRepo, f.hasher, log)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
 			user, authToken, err := uc.SignIn(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -95,7 +124,7 @@ func TestUsecase_SignIn(t *testing.T) {
 	}
 }
 
-func TestUsecase_SignUp(t *testing.T) {
+func (s *AuthUsecaseSuite) TestSignUp(t provider.T) {
 	type fields struct {
 		usersRepo    *usersMocks.MockRepository
 		sessionsRepo *sessionsMocks.MockRepository
@@ -149,7 +178,7 @@ func TestUsecase_SignUp(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -167,8 +196,7 @@ func TestUsecase_SignUp(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
-			uc := New(f.usersRepo, f.sessionsRepo, f.hasher, log)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
 			user, authToken, err := uc.SignUp(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -183,7 +211,7 @@ func TestUsecase_SignUp(t *testing.T) {
 	}
 }
 
-func TestUsecase_CheckAuth(t *testing.T) {
+func (s *AuthUsecaseSuite) TestCheckAuth(t provider.T) {
 	type fields struct {
 		usersRepo    *usersMocks.MockRepository
 		sessionsRepo *sessionsMocks.MockRepository
@@ -213,7 +241,7 @@ func TestUsecase_CheckAuth(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -229,8 +257,7 @@ func TestUsecase_CheckAuth(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
-			uc := New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), log)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger)
 			userID, err := uc.CheckAuth(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -242,7 +269,7 @@ func TestUsecase_CheckAuth(t *testing.T) {
 	}
 }
 
-func TestUsecase_Logout(t *testing.T) {
+func (s *AuthUsecaseSuite) TestLogout(t provider.T) {
 	type fields struct {
 		sessionsRepo *sessionsMocks.MockRepository
 		userID       int
@@ -269,7 +296,7 @@ func TestUsecase_Logout(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -284,12 +311,15 @@ func TestUsecase_Logout(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
-			uc := New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), log)
+			uc := authUsecase.New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger)
 			err := uc.Logout(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
 		})
 	}
+}
+
+func TestSuiteRunner(t *testing.T) {
+	suite.RunSuite(t, new(AuthUsecaseSuite))
 }

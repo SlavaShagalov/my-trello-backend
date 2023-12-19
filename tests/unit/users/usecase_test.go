@@ -1,19 +1,46 @@
-package usecase
+package users
 
 import (
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
+	"reflect"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
+	"github.com/pkg/errors"
+
 	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
-	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgUsers "github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
-	"reflect"
-	"testing"
+	usersUsecase "github.com/SlavaShagalov/my-trello-backend/internal/users/usecase"
 )
 
-func TestUsecase_List(t *testing.T) {
+type UsersUsecaseSuite struct {
+	suite.Suite
+}
+
+func (s *UsersUsecaseSuite) BeforeAll(t provider.T) {
+	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
+
+	config.SetDefaultValidationConfig()
+}
+
+func (s *UsersUsecaseSuite) AfterAll(t provider.T) {
+	t.WithNewStep("TearDownSuite step", func(ctx provider.StepCtx) {})
+}
+
+func (s *UsersUsecaseSuite) BeforeEach(t provider.T) {
+	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *UsersUsecaseSuite) AfterEach(t provider.T) {
+	t.WithNewStep("TearDownTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *UsersUsecaseSuite) TestList(t provider.T) {
 	type fields struct {
 		repo    *mocks.MockRepository
 		imgRepo *imgMocks.MockRepository
@@ -74,7 +101,7 @@ func TestUsecase_List(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -89,7 +116,7 @@ func TestUsecase_List(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			workspaces, err := uc.List()
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -101,7 +128,7 @@ func TestUsecase_List(t *testing.T) {
 	}
 }
 
-func TestUsecase_Get(t *testing.T) {
+func (s *UsersUsecaseSuite) TestGet(t provider.T) {
 	type fields struct {
 		repo    *mocks.MockRepository
 		imgRepo *imgMocks.MockRepository
@@ -143,7 +170,7 @@ func TestUsecase_Get(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -154,7 +181,7 @@ func TestUsecase_Get(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			user, err := uc.Get(test.userID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -166,7 +193,7 @@ func TestUsecase_Get(t *testing.T) {
 	}
 }
 
-func TestUsecase_GetByUsername(t *testing.T) {
+func (s *UsersUsecaseSuite) TestGetByUsername(t provider.T) {
 	type fields struct {
 		repo     *mocks.MockRepository
 		imgRepo  *imgMocks.MockRepository
@@ -208,7 +235,7 @@ func TestUsecase_GetByUsername(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -219,7 +246,7 @@ func TestUsecase_GetByUsername(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			user, err := uc.GetByUsername(test.username)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -231,7 +258,7 @@ func TestUsecase_GetByUsername(t *testing.T) {
 	}
 }
 
-func TestUsecase_FullUpdate(t *testing.T) {
+func (s *UsersUsecaseSuite) TestFullUpdate(t provider.T) {
 	type fields struct {
 		repo    *mocks.MockRepository
 		imgRepo *imgMocks.MockRepository
@@ -263,11 +290,9 @@ func TestUsecase_FullUpdate(t *testing.T) {
 		},
 	}
 
-	config.SetDefaultValidationConfig()
-
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -278,7 +303,7 @@ func TestUsecase_FullUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			user, err := uc.FullUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -290,7 +315,7 @@ func TestUsecase_FullUpdate(t *testing.T) {
 	}
 }
 
-func TestUsecase_PartialUpdate(t *testing.T) {
+func (s *UsersUsecaseSuite) TestPartialUpdate(t provider.T) {
 	type fields struct {
 		repo    *mocks.MockRepository
 		imgRepo *imgMocks.MockRepository
@@ -325,11 +350,9 @@ func TestUsecase_PartialUpdate(t *testing.T) {
 		},
 	}
 
-	config.SetDefaultValidationConfig()
-
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -340,7 +363,7 @@ func TestUsecase_PartialUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			user, err := uc.PartialUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -352,7 +375,7 @@ func TestUsecase_PartialUpdate(t *testing.T) {
 	}
 }
 
-func TestUsecase_Delete(t *testing.T) {
+func (s *UsersUsecaseSuite) TestDelete(t provider.T) {
 	type fields struct {
 		repo    *mocks.MockRepository
 		imgRepo *imgMocks.MockRepository
@@ -384,7 +407,7 @@ func TestUsecase_Delete(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -395,11 +418,15 @@ func TestUsecase_Delete(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo, f.imgRepo)
+			uc := usersUsecase.New(f.repo, f.imgRepo)
 			err := uc.Delete(test.userID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
 		})
 	}
+}
+
+func TestSuiteRunner(t *testing.T) {
+	suite.RunSuite(t, new(UsersUsecaseSuite))
 }

@@ -1,17 +1,24 @@
-package usecase
+package cards
 
 import (
 	pkgCards "github.com/SlavaShagalov/my-trello-backend/internal/cards"
 	"github.com/SlavaShagalov/my-trello-backend/internal/cards/mocks"
+	cardsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/cards/usecase"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	"github.com/golang/mock/gomock"
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
 	"github.com/pkg/errors"
 	"reflect"
 	"testing"
 )
 
-func TestUsecase_Create(t *testing.T) {
+type CardsUsecaseSuite struct {
+	suite.Suite
+}
+
+func (s *CardsUsecaseSuite) TestCreate(t provider.T) {
 	type fields struct {
 		repo   *mocks.MockRepository
 		params *pkgCards.CreateParams
@@ -64,7 +71,7 @@ func TestUsecase_Create(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -75,7 +82,7 @@ func TestUsecase_Create(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := cardsUsecase.New(f.repo)
 			card, err := uc.Create(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -87,7 +94,7 @@ func TestUsecase_Create(t *testing.T) {
 	}
 }
 
-func TestUsecase_List(t *testing.T) {
+func (s *CardsUsecaseSuite) TestList(t provider.T) {
 	type fields struct {
 		repo   *mocks.MockRepository
 		listID int
@@ -142,7 +149,7 @@ func TestUsecase_List(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -153,7 +160,7 @@ func TestUsecase_List(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			serv := New(f.repo)
+			serv := cardsUsecase.New(f.repo)
 			cards, err := serv.ListByList(test.listID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -165,7 +172,7 @@ func TestUsecase_List(t *testing.T) {
 	}
 }
 
-func TestUsecase_Get(t *testing.T) {
+func (s *CardsUsecaseSuite) TestGet(t provider.T) {
 	type fields struct {
 		repo *mocks.MockRepository
 		id   int
@@ -208,7 +215,7 @@ func TestUsecase_Get(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -219,7 +226,7 @@ func TestUsecase_Get(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := cardsUsecase.New(f.repo)
 			card, err := uc.Get(test.id)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -231,7 +238,7 @@ func TestUsecase_Get(t *testing.T) {
 	}
 }
 
-func TestFullUpdate(t *testing.T) {
+func (s *CardsUsecaseSuite) TestFullUpdate(t provider.T) {
 	type fields struct {
 		repo   *mocks.MockRepository
 		params *pkgCards.FullUpdateParams
@@ -264,7 +271,7 @@ func TestFullUpdate(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -275,7 +282,7 @@ func TestFullUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := cardsUsecase.New(f.repo)
 			card, err := uc.FullUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -287,7 +294,7 @@ func TestFullUpdate(t *testing.T) {
 	}
 }
 
-func TestPartialUpdate(t *testing.T) {
+func (s *CardsUsecaseSuite) TestPartialUpdate(t provider.T) {
 	type fields struct {
 		repo   *mocks.MockRepository
 		params *pkgCards.PartialUpdateParams
@@ -330,7 +337,7 @@ func TestPartialUpdate(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -341,7 +348,7 @@ func TestPartialUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := cardsUsecase.New(f.repo)
 			card, err := uc.PartialUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -353,7 +360,7 @@ func TestPartialUpdate(t *testing.T) {
 	}
 }
 
-func TestUsecase_Delete(t *testing.T) {
+func (s *CardsUsecaseSuite) TestDelete(t provider.T) {
 	type fields struct {
 		repo *mocks.MockRepository
 		id   int
@@ -384,7 +391,7 @@ func TestUsecase_Delete(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -395,11 +402,15 @@ func TestUsecase_Delete(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := cardsUsecase.New(f.repo)
 			err := uc.Delete(test.id)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
 		})
 	}
+}
+
+func TestSuiteRunner(t *testing.T) {
+	suite.RunSuite(t, new(CardsUsecaseSuite))
 }

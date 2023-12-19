@@ -8,7 +8,6 @@ import (
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"path/filepath"
 )
@@ -49,11 +48,8 @@ func (uc *usecase) FullUpdate(params *users.FullUpdateParams) (models.User, erro
 	}
 
 	_, err := uc.usersRepo.GetByUsername(params.Username)
-	if !errors.Is(err, pkgErrors.ErrUserNotFound) {
-		if err != nil {
-			return models.User{}, err
-		}
-		return models.User{}, pkgErrors.ErrUserAlreadyExists
+	if err != nil {
+		return models.User{}, err
 	}
 
 	return uc.usersRepo.FullUpdate(params)
@@ -66,11 +62,8 @@ func (uc *usecase) PartialUpdate(params *users.PartialUpdateParams) (models.User
 		}
 
 		_, err := uc.usersRepo.GetByUsername(params.Username)
-		if !errors.Is(err, pkgErrors.ErrUserNotFound) {
-			if err != nil {
-				return models.User{}, err
-			}
-			return models.User{}, pkgErrors.ErrUserAlreadyExists
+		if err != nil {
+			return models.User{}, err
 		}
 	} else if params.UpdateName {
 		if err := validateName(params.Name); err != nil {

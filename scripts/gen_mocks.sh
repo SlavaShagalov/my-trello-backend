@@ -21,6 +21,8 @@ interface_files=(
 
   internal/cards/usecase.go
   internal/cards/repository.go
+
+  internal/images/repository.go
 )
 
 echo "Generating mocks..."

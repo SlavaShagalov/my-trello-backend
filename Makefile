@@ -74,7 +74,7 @@ format:
 
 .PHONY: unit-tests
 unit-tests:
-	go test ./internal/...
+	ALLURE_OUTPUT_PATH=$(CURDIR) go test ./tests/unit/...
 
 .PHONY: integration-tests
 integration-tests:

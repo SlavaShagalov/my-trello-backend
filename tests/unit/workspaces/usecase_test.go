@@ -1,17 +1,50 @@
-package usecase
+package workspaces
 
 import (
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	"reflect"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
+	"github.com/ozontech/allure-go/pkg/framework/provider"
+	"github.com/ozontech/allure-go/pkg/framework/suite"
+
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	"github.com/SlavaShagalov/my-trello-backend/internal/workspaces/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/pkg/errors"
-	"reflect"
-	"testing"
+	workspacesUsecase "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/usecase"
 )
 
-func TestUsecase_Create(t *testing.T) {
+type WorkspacesUsecaseSuite struct {
+	suite.Suite
+	logger *zap.Logger
+}
+
+func (s *WorkspacesUsecaseSuite) BeforeAll(t provider.T) {
+	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
+
+	s.logger = pkgZap.NewTestLogger()
+}
+
+func (s *WorkspacesUsecaseSuite) AfterAll(t provider.T) {
+	t.WithNewStep("TearDownSuite step", func(ctx provider.StepCtx) {})
+
+	_ = s.logger.Sync()
+}
+
+func (s *WorkspacesUsecaseSuite) BeforeEach(t provider.T) {
+	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *WorkspacesUsecaseSuite) AfterEach(t provider.T) {
+	t.WithNewStep("TearDownTest step", func(ctx provider.StepCtx) {})
+}
+
+func (s *WorkspacesUsecaseSuite) TestCreate(t provider.T) {
 	type fields struct {
 		repo      *mocks.MockRepository
 		params    *pkgWorkspaces.CreateParams
@@ -42,7 +75,7 @@ func TestUsecase_Create(t *testing.T) {
 			workspace: models.Workspace{},
 			err:       pkgErrors.ErrUserNotFound,
 		},
-		"storages error": {
+		"db error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.workspace, pkgErrors.ErrDb)
 			},
@@ -54,7 +87,7 @@ func TestUsecase_Create(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -65,7 +98,7 @@ func TestUsecase_Create(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			workspace, err := uc.Create(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -77,7 +110,7 @@ func TestUsecase_Create(t *testing.T) {
 	}
 }
 
-func TestUsecase_List(t *testing.T) {
+func (s *WorkspacesUsecaseSuite) TestList(t provider.T) {
 	type fields struct {
 		repo       *mocks.MockRepository
 		userID     int
@@ -132,7 +165,7 @@ func TestUsecase_List(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -143,7 +176,7 @@ func TestUsecase_List(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			workspaces, err := uc.List(test.userID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -155,7 +188,7 @@ func TestUsecase_List(t *testing.T) {
 	}
 }
 
-func TestUsecase_Get(t *testing.T) {
+func (s *WorkspacesUsecaseSuite) TestGet(t provider.T) {
 	type fields struct {
 		repo        *mocks.MockRepository
 		workspaceID int
@@ -186,7 +219,7 @@ func TestUsecase_Get(t *testing.T) {
 			workspace:   models.Workspace{},
 			err:         pkgErrors.ErrUserNotFound,
 		},
-		"storages error": {
+		"db error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.workspaceID).Return(*f.workspace, pkgErrors.ErrDb)
 			},
@@ -198,7 +231,7 @@ func TestUsecase_Get(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -209,7 +242,7 @@ func TestUsecase_Get(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			workspace, err := uc.Get(test.workspaceID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -221,7 +254,7 @@ func TestUsecase_Get(t *testing.T) {
 	}
 }
 
-func TestFullUpdate(t *testing.T) {
+func (s *WorkspacesUsecaseSuite) TestFullUpdate(t provider.T) {
 	type fields struct {
 		repo      *mocks.MockRepository
 		params    *pkgWorkspaces.FullUpdateParams
@@ -248,7 +281,7 @@ func TestFullUpdate(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -259,7 +292,7 @@ func TestFullUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			workspace, err := uc.FullUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -271,7 +304,7 @@ func TestFullUpdate(t *testing.T) {
 	}
 }
 
-func TestPartialUpdate(t *testing.T) {
+func (s *WorkspacesUsecaseSuite) TestPartialUpdate(t provider.T) {
 	type fields struct {
 		repo      *mocks.MockRepository
 		params    *pkgWorkspaces.PartialUpdateParams
@@ -304,7 +337,7 @@ func TestPartialUpdate(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -315,7 +348,7 @@ func TestPartialUpdate(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			workspace, err := uc.PartialUpdate(test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -327,7 +360,7 @@ func TestPartialUpdate(t *testing.T) {
 	}
 }
 
-func TestUsecase_Delete(t *testing.T) {
+func (s *WorkspacesUsecaseSuite) TestDelete(t provider.T) {
 	type fields struct {
 		repo        *mocks.MockRepository
 		workspaceID int
@@ -358,7 +391,7 @@ func TestUsecase_Delete(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-		t.Run(name, func(t *testing.T) {
+		t.Run(name, func(t provider.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
@@ -369,11 +402,15 @@ func TestUsecase_Delete(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			uc := New(f.repo)
+			uc := workspacesUsecase.New(f.repo)
 			err := uc.Delete(test.workspaceID)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
 		})
 	}
+}
+
+func TestSuiteRunner(t *testing.T) {
+	suite.RunSuite(t, new(WorkspacesUsecaseSuite))
 }

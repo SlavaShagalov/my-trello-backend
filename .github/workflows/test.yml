@@ -12,4 +12,6 @@ jobs:
         run: make run-test-containers
 
       - name: Run unit tests
-        run: docker compose exec test go test ./tests/unit/...
+        run:
+          - ./scripts/gen_mocks.sh
+          - docker compose exec test go test ./tests/unit/...

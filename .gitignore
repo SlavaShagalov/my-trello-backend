@@ -16,3 +16,12 @@ static/README.md
 # Docker Postgres data
 pgdata
 archive
+
+# Allure
+allure-results
+
+# Mocks
+mocks
+
+EasyJSON
+*_easyjson.go

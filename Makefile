@@ -2,7 +2,6 @@ include make/db.mk
 include make/test_db.mk
 include make/redis.mk
 include make/test_redis.mk
-include make/microservices.mk
 
 EASYJSON_PATHS = ./internal/...
 
@@ -72,12 +71,17 @@ format:
 
 # ===== TESTS =====
 
-.PHONY: unit-tests
-unit-tests:
+.PHONY: run-test-containers
+run-test-containers:
+	#docker compose -f docker-compose.yml up -d --build db sessions-storage api-main balancer test
+	docker compose -f docker-compose.yml up -d --build test
+
+.PHONY: unit-test
+unit-test:
 	ALLURE_OUTPUT_PATH=$(CURDIR) go test ./tests/unit/...
 
-.PHONY: integration-tests
-integration-tests:
+.PHONY: integration-test
+integration-test:
 	go test ./tests/integration/...
 
 .PHONY: unit-cover

@@ -7,3 +7,4 @@
 - Redis
 - S3 storage
 - Docker, Docker Compose
+- Allure

@@ -1,0 +1,15 @@
+name: Test
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Up containers
+        run: make run-test-containers
+
+      - name: Run unit tests
+        run: docker compose exec test go test ./tests/unit/...

@@ -1,5 +1,6 @@
 FROM golang:1.20-alpine3.18 AS install
 RUN apk add --no-cache git make bash
+RUN go install github.com/golang/mock/mockgen@v1.6.0
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN CGO_ENABLED=0 go mod download

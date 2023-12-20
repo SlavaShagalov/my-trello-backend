@@ -1,5 +1,7 @@
 FROM golang:1.20-alpine3.18 AS install
-RUN apk add --no-cache git
+RUN apk add --no-cache git make bash
+RUN go install github.com/golang/mock/mockgen@v1.6.0
+RUN go install github.com/mailru/easyjson/...@latest
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN CGO_ENABLED=0 go mod download
@@ -9,10 +11,12 @@ WORKDIR /src
 COPY cmd ./cmd
 COPY internal ./internal
 COPY docs ./docs
+RUN make mocks
+RUN make easyjson
 RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go build -o /bin/api cmd/api/main.go
 
-FROM ubuntu AS api
+FROM scratch AS api
 WORKDIR /
 COPY --from=build /bin/api /bin/api
 CMD ["/bin/api"]

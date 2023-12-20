@@ -227,6 +227,7 @@ services:
       - test-sessions-db
     volumes:
       - ./tests/logs:/logs
+      - ./tests/allure-results:/src/allure-results
     networks:
       - trello-network
     deploy:
@@ -276,8 +277,8 @@ services:
       context: .
       dockerfile: ./cmd/api/Dockerfile
     container_name: trello_test_api
-#    ports:
-#      - "8000:8000"
+    ports:
+      - "8000:8000"
     depends_on:
       - test-db
       - test-sessions-db

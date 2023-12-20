@@ -8,20 +8,22 @@ import (
 //go:generate easyjson -all -snake_case models.go
 
 // API requests
-type signUpRequest struct {
+
+type SignUpRequest struct {
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type signInRequest struct {
+type SignInRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 // API responses
-type signInResponse struct {
+
+type SignInResponse struct {
 	ID        int       `json:"id"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
@@ -31,8 +33,8 @@ type signInResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func newSignInResponse(user *models.User) *signInResponse {
-	return &signInResponse{
+func newSignInResponse(user *models.User) *SignInResponse {
+	return &SignInResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
@@ -43,7 +45,7 @@ func newSignInResponse(user *models.User) *signInResponse {
 	}
 }
 
-type signUpResponse struct {
+type SignUpResponse struct {
 	ID        int       `json:"id"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
@@ -53,8 +55,8 @@ type signUpResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func newSignUpResponse(user *models.User) *signUpResponse {
-	return &signUpResponse{
+func newSignUpResponse(user *models.User) *SignUpResponse {
+	return &SignUpResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,

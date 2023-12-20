@@ -8,12 +8,12 @@ import (
 //go:generate easyjson -all -snake_case models.go
 
 // API requests
-type createRequest struct {
+type CreateRequest struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
-type partialUpdateRequest struct {
+type PartialUpdateRequest struct {
 	Title    *string `json:"title"`
 	Content  *string `json:"content"`
 	Position *int    `json:"position"`
@@ -21,17 +21,17 @@ type partialUpdateRequest struct {
 }
 
 // API responses
-type cardResponse struct {
+type CardResponse struct {
 	Cards []models.Card `json:"cards"`
 }
 
-func newListResponse(cards []models.Card) *cardResponse {
-	return &cardResponse{
+func newListResponse(cards []models.Card) *CardResponse {
+	return &CardResponse{
 		Cards: cards,
 	}
 }
 
-type createResponse struct {
+type CreateResponse struct {
 	ID        int       `json:"id"`
 	ListID    int       `json:"list_id"`
 	Title     string    `json:"title"`
@@ -41,8 +41,8 @@ type createResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func newCreateResponse(card *models.Card) *createResponse {
-	return &createResponse{
+func newCreateResponse(card *models.Card) *CreateResponse {
+	return &CreateResponse{
 		ID:        card.ID,
 		ListID:    card.ListID,
 		Title:     card.Title,

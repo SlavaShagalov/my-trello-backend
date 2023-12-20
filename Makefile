@@ -21,21 +21,10 @@ stop:
 
 # ===== LOGS =====
 
-.PHONY: api-main-logs
-api-main-logs:
-	tail -f -n +1 cmd/api/logs/main.log | batcat --paging=never --language=log
-
-.PHONY: api-1-logs
-api-1-logs:
-	tail -f -n +1 cmd/api/logs/read_1.log | batcat --paging=never --language=log
-
-.PHONY: api-2-logs
-api-2-logs:
-	tail -f -n +1 cmd/api/logs/read_2.log | batcat --paging=never --language=log
-
-.PHONY: mirror-logs
-mirror-logs:
-	tail -f -n +1 cmd/api/logs/mirror.log | batcat --paging=never --language=log
+name = main
+.PHONY: api-logs
+api-logs:
+	tail -f -n +1 "cmd/api/logs/$(name).log" | batcat --paging=never --language=log
 
 .PHONY: db-logs
 db-logs:
@@ -84,6 +73,10 @@ unit-test:
 integration-test:
 	go test ./tests/integration/...
 	#go test -count=50 ./tests/integration/...
+
+.PHONY: e2e-test
+e2e-test:
+	go test ./tests/e2e/...
 
 .PHONY: unit-cover
 unit-cover:

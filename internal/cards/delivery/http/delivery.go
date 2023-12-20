@@ -51,8 +51,8 @@ func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, check
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		int				true	"List ID"
-//	@Param			ListCreateData	body		createRequest	true	"List create data"
-//	@Success		200				{object}	createResponse	"Created card data."
+//	@Param			ListCreateData	body		CreateRequest	true	"List create data"
+//	@Success		200				{object}	CreateResponse	"Created card data."
 //	@Failure		400				{object}	http.JSONError
 //	@Failure		401				{object}	http.JSONError
 //	@Failure		405
@@ -74,7 +74,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request createRequest
+	var request CreateRequest
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
@@ -104,7 +104,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //	@Tags			lists
 //	@Produce		json
 //	@Param			id	path		int				true	"Board ID"
-//	@Success		200	{object}	cardResponse	"Lists data"
+//	@Success		200	{object}	CardResponse	"Lists data"
 //	@Failure		400	{object}	http.JSONError
 //	@Failure		401	{object}	http.JSONError
 //	@Failure		405
@@ -137,7 +137,7 @@ func (del *delivery) listByList(w http.ResponseWriter, r *http.Request) {
 //	@Tags			cards
 //	@Produce		json
 //	@Param			title	query		string			true	"Title filter"
-//	@Success		200		{object}	cardResponse	"Lists data"
+//	@Success		200		{object}	CardResponse	"Lists data"
 //	@Failure		400		{object}	http.JSONError
 //	@Failure		401		{object}	http.JSONError
 //	@Failure		405
@@ -206,7 +206,7 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		int						true	"Card ID"
-//	@Param			ListUpdateData	body		partialUpdateRequest	true	"Card data to update"
+//	@Param			ListUpdateData	body		PartialUpdateRequest	true	"Card data to update"
 //	@Success		200				{object}	getResponse				"Updated card data."
 //	@Failure		400				{object}	http.JSONError
 //	@Failure		401				{object}	http.JSONError
@@ -229,7 +229,7 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request partialUpdateRequest
+	var request PartialUpdateRequest
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)

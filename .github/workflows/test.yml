@@ -16,3 +16,6 @@ jobs:
 
       - name: Run integration tests
         run: docker compose exec test make integration-test
+
+      - name: Run end-to-end tests
+        run: docker compose exec test make e2e-test

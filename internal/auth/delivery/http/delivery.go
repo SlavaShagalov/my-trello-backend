@@ -42,8 +42,8 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			signUpParams	body		signUpRequest	true	"Sign up params."
-//	@Success		200				{object}	signUpResponse	"Successfully created user."
+//	@Param			signUpParams	body		SignUpRequest	true	"Sign up params."
+//	@Success		200				{object}	SignUpResponse	"Successfully created user."
 //	@Failure		400				{object}	http.JSONError
 //	@Failure		405
 //	@Failure		500
@@ -55,7 +55,7 @@ func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request signUpRequest
+	var request SignUpRequest
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
@@ -89,8 +89,8 @@ func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 //	@Tags			auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			signInParams	body		signInRequest	true	"Successfully authenticated."
-//	@Success		200				{object}	signInResponse	"successfully auth"
+//	@Param			signInParams	body		SignInRequest	true	"Successfully authenticated."
+//	@Success		200				{object}	SignInResponse	"successfully auth"
 //	@Failure		400				{object}	http.JSONError
 //	@Failure		404				{object}	http.JSONError
 //	@Failure		405
@@ -103,7 +103,7 @@ func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request signInRequest
+	var request SignInRequest
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)

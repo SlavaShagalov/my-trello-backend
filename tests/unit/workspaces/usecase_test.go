@@ -27,7 +27,7 @@ type WorkspacesUsecaseSuite struct {
 func (s *WorkspacesUsecaseSuite) BeforeAll(t provider.T) {
 	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
 
-	s.logger = pkgZap.NewTestLogger()
+	s.logger = pkgZap.NewDevelopLogger()
 }
 
 func (s *WorkspacesUsecaseSuite) AfterAll(t provider.T) {

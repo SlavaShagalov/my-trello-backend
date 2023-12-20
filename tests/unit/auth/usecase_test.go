@@ -29,7 +29,7 @@ type AuthUsecaseSuite struct {
 func (s *AuthUsecaseSuite) BeforeAll(t provider.T) {
 	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
 
-	s.logger = pkgZap.NewTestLogger()
+	s.logger = pkgZap.NewDevelopLogger()
 }
 
 func (s *AuthUsecaseSuite) AfterAll(t provider.T) {

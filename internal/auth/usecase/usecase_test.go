@@ -79,7 +79,7 @@ func TestUsecase_SignIn(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
+			log := pkgZap.NewDevelopLogger()
 			uc := New(f.usersRepo, f.sessionsRepo, f.hasher, log)
 			user, authToken, err := uc.SignIn(test.params)
 			if !errors.Is(err, test.err) {
@@ -167,7 +167,7 @@ func TestUsecase_SignUp(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
+			log := pkgZap.NewDevelopLogger()
 			uc := New(f.usersRepo, f.sessionsRepo, f.hasher, log)
 			user, authToken, err := uc.SignUp(test.params)
 			if !errors.Is(err, test.err) {
@@ -229,7 +229,7 @@ func TestUsecase_CheckAuth(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
+			log := pkgZap.NewDevelopLogger()
 			uc := New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), log)
 			userID, err := uc.CheckAuth(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
@@ -284,7 +284,7 @@ func TestUsecase_Logout(t *testing.T) {
 				test.prepare(&f)
 			}
 
-			log := pkgZap.NewTestLogger()
+			log := pkgZap.NewDevelopLogger()
 			uc := New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), log)
 			err := uc.Logout(test.userID, test.authToken)
 			if !errors.Is(err, test.err) {

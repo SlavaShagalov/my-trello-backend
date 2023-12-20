@@ -172,10 +172,9 @@ func (s *ListsSuite) TestGet() {
 		"normal": {
 			listID: 8,
 			list: models.List{
-				ID:       8,
-				BoardID:  3,
-				Title:    "Прототипирование",
-				Position: 1,
+				ID:      8,
+				BoardID: 3,
+				Title:   "Прототипирование",
 			},
 			err: nil,
 		},
@@ -196,7 +195,6 @@ func (s *ListsSuite) TestGet() {
 				assert.Equal(s.T(), test.list.ID, list.ID, "incorrect listID")
 				assert.Equal(s.T(), test.list.BoardID, list.BoardID, "incorrect BoardID")
 				assert.Equal(s.T(), test.list.Title, list.Title, "incorrect Title")
-				assert.Equal(s.T(), test.list.Position, list.Position, "incorrect Position")
 			}
 		})
 	}

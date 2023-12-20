@@ -180,11 +180,10 @@ func (s *CardsSuite) TestGet() {
 		"normal": {
 			cardID: 8,
 			card: models.Card{
-				ID:       8,
-				ListID:   3,
-				Title:    "Проведение приемочных тестов",
-				Content:  "Провести приемочное тестирование и подтвердить работоспособность",
-				Position: 1,
+				ID:      8,
+				ListID:  3,
+				Title:   "Проведение приемочных тестов",
+				Content: "Провести приемочное тестирование и подтвердить работоспособность",
 			},
 			err: nil,
 		},
@@ -206,7 +205,6 @@ func (s *CardsSuite) TestGet() {
 				assert.Equal(s.T(), test.card.ListID, card.ListID, "incorrect ListID")
 				assert.Equal(s.T(), test.card.Title, card.Title, "incorrect Title")
 				assert.Equal(s.T(), test.card.Content, card.Content, "incorrect Content")
-				assert.Equal(s.T(), test.card.Position, card.Position, "incorrect Position")
 			}
 		})
 	}

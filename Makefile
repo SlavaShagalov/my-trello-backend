@@ -19,24 +19,33 @@ start:
 stop:
 	docker compose -f docker-compose.yml stop
 
+.PHONY: api-up
+api-up:
+	docker compose -f docker-compose.yml up -d --build db sessions-db api-main balancer
+
+.PHONY: api-stop
+api-stop:
+	docker compose -f docker-compose.yml stop db sessions-db api-main balancer
+
+.PHONY: monitoring-up
+monitoring-up:
+	docker compose -f docker-compose.yml up -d --build node-exporter prometheus grafana
+
+.PHONY: monitoring-stop
+monitoring-stop:
+	docker compose -f docker-compose.yml stop node-exporter prometheus grafana
+
 # ===== LOGS =====
 
+service = node-exporter
+.PHONY: logs
+logs:
+	docker compose logs -f "$(service)"
+
 name = main
-.PHONY: api-logs
-api-logs:
+.PHONY: logs-api
+logs-api:
 	tail -f -n +1 "cmd/api/logs/$(name).log" | batcat --paging=never --language=log
-
-.PHONY: db-logs
-db-logs:
-	docker compose logs -f data-storage
-
-.PHONY: db-rep-logs
-db-rep-logs:
-	docker compose logs -f data-storage-rep
-
-.PHONY: balancer-logs
-balancer-logs:
-	docker compose logs -f balancer
 
 # ===== GENERATORS =====
 

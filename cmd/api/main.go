@@ -10,6 +10,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pMetrics "github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
 	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
@@ -72,6 +73,7 @@ func main() {
 		log.Printf("Failed to read configuration: %v\n", err)
 		os.Exit(1)
 	}
+	log.Printf("Configuration read successfully")
 
 	// Logger
 	logger, logfile, err := pLog.NewProdLogger("/logs/" + viper.GetString(config.ServerName) + ".log")
@@ -123,6 +125,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Prometheus
+	mt := pMetrics.NewPrometheusMetrics("api")
+	err = mt.SetupMetrics()
+	if err != nil {
+		logger.Error("failed to setup prometheus", zap.Error(err))
+		os.Exit(1)
+	}
+
 	// Hasher
 	hasher := pHasher.New()
 
@@ -146,16 +156,17 @@ func main() {
 	// Middleware
 	checkAuth := mw.NewCheckAuth(authUC, logger)
 	accessLog := mw.NewAccessLog(logger)
+	metrics := mw.NewMetrics(mt)
 
 	router := mux.NewRouter()
 
 	// Delivery
-	authDel.RegisterHandlers(router, authUC, logger, checkAuth)
-	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth)
-	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth)
-	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth)
-	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth)
-	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth)
+	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics)
+	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth, metrics)
+	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth, metrics)
+	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth, metrics)
+	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth, metrics)
+	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth, metrics)
 
 	// Swagger
 	router.PathPrefix(constants.ApiPrefix + "/swagger/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
@@ -165,6 +176,10 @@ func main() {
 		Addr:    ":" + viper.GetString(config.ServerPort),
 		Handler: accessLog(router),
 	}
+
+	logger.Info("Starting metrics...", zap.String("address", "0.0.0.0:9001"))
+	go pMetrics.ServePrometheusHTTP("0.0.0.0:9001")
+	logger.Info("Metrics started")
 
 	// Start
 	logger.Info("API service started", zap.String("port", viper.GetString(config.ServerPort)))

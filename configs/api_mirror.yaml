@@ -11,7 +11,7 @@ PG_PASSWORD: 2222
 PG_SSL_MODE: disable
 
 # Redis
-REDIS_HOST: sessions-storage
+REDIS_HOST: sessions-db
 REDIS_PORT: 6379
 REDIS_PASSWORD: 1234
 

@@ -24,9 +24,9 @@ services:
       - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/5.sql
     ports:
       - "5432:5432"
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.2
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.2
     networks:
       - trello-network
     deploy:
@@ -51,9 +51,9 @@ services:
       - "5433:5432"
     depends_on:
       - db
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.3
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.3
     networks:
       - trello-network
     deploy:
@@ -69,9 +69,9 @@ services:
     command: redis-server --requirepass "${REDIS_PASSWORD}"
     ports:
       - "6379:6379"
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.4
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.4
     networks:
       - trello-network
     deploy:
@@ -95,9 +95,9 @@ services:
       - ./cmd/api/logs:/logs
       - ./configs/api_main.yaml:/configs/api.yaml
       - ./.aws:/root/.aws
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.5
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.5
     networks:
       - trello-network
     deploy:
@@ -118,9 +118,9 @@ services:
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_1.yaml:/configs/api.yaml
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.6
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.6
     networks:
       - trello-network
     deploy:
@@ -141,9 +141,9 @@ services:
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_2.yaml:/configs/api.yaml
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.7
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.7
     networks:
       - trello-network
     deploy:
@@ -164,9 +164,9 @@ services:
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_mirror.yaml:/configs/api.yaml
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.8
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.8
     networks:
       - trello-network
     deploy:
@@ -188,9 +188,9 @@ services:
       - "80:80"
     depends_on:
       - api-main
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.9
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.9
     networks:
       - trello-network
     deploy:
@@ -205,9 +205,9 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@vk.com
       PGADMIN_DEFAULT_PASSWORD: 1234
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.10
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.10
     networks:
       - trello-network
     deploy:
@@ -247,9 +247,9 @@ services:
       - ./scripts/migrations/test_data.sql:/docker-entrypoint-initdb.d/2.sql
     ports:
       - "5432:5432"
-#    networks:
-#      trello-network:
-#        ipv4_address: 192.168.0.12
+    #    networks:
+    #      trello-network:
+    #        ipv4_address: 192.168.0.12
     networks:
       - trello-network
     deploy:
@@ -286,6 +286,65 @@ services:
       - ./cmd/api/logs:/logs
       - ./configs/api_test.yaml:/configs/api.yaml
       - ./.aws:/root/.aws
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  # === Monitoring ===
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: trello_node_exporter
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      # - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - trello-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trello_prometheus
+    environment:
+      TZ: "Europe/Moscow"
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  grafana:
+    image: grafana/grafana:9.5.1
+    container_name: trello_grafana
+    environment:
+      TZ: "Europe/Moscow"
+      GF_SECURITY_ADMIN_USER: 'admin'
+      GF_SECURITY_ADMIN_PASSWORD: '1234'
+      GF_INSTALL_PLUGINS: 'grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel'
+#    volumes:
+#      - ./grafana/data:/var/lib/grafana
+#      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
     networks:
       - trello-network
     deploy:

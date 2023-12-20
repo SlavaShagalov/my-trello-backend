@@ -17,7 +17,7 @@ type delivery struct {
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -29,12 +29,12 @@ func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, 
 		workspacePath    = workspacesPath + "/{id}"
 	)
 
-	mux.HandleFunc(workspacesPath, checkAuth(del.create)).Methods(http.MethodPost)
-	mux.HandleFunc(workspacesPath, checkAuth(del.list)).Methods(http.MethodGet)
+	mux.HandleFunc(workspacesPath, metrics(checkAuth(del.create))).Methods(http.MethodPost)
+	mux.HandleFunc(workspacesPath, metrics(checkAuth(del.list))).Methods(http.MethodGet)
 
-	mux.HandleFunc(workspacePath, checkAuth(del.get)).Methods(http.MethodGet)
-	mux.HandleFunc(workspacePath, checkAuth(del.partialUpdate)).Methods(http.MethodPatch)
-	mux.HandleFunc(workspacePath, checkAuth(del.delete)).Methods(http.MethodDelete)
+	mux.HandleFunc(workspacePath, metrics(checkAuth(del.get))).Methods(http.MethodGet)
+	mux.HandleFunc(workspacePath, metrics(checkAuth(del.partialUpdate))).Methods(http.MethodPatch)
+	mux.HandleFunc(workspacePath, metrics(checkAuth(del.delete))).Methods(http.MethodDelete)
 }
 
 // create godoc

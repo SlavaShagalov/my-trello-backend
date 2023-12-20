@@ -19,7 +19,7 @@ type delivery struct {
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pUsers.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pUsers.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -32,9 +32,9 @@ func RegisterHandlers(mux *mux.Router, uc pUsers.Usecase, log *zap.Logger, check
 		avatarPath  = userPath + "/avatar"
 	)
 
-	mux.HandleFunc(userPath, checkAuth(del.get)).Methods(http.MethodGet)
-	mux.HandleFunc(userPath, checkAuth(del.partialUpdate)).Methods(http.MethodPatch)
-	mux.HandleFunc(avatarPath, checkAuth(del.updateAvatar)).Methods(http.MethodPut)
+	mux.HandleFunc(userPath, metrics(checkAuth(del.get))).Methods(http.MethodGet)
+	mux.HandleFunc(userPath, metrics(checkAuth(del.partialUpdate))).Methods(http.MethodPatch)
+	mux.HandleFunc(avatarPath, metrics(checkAuth(del.updateAvatar))).Methods(http.MethodPut)
 }
 
 // get godoc

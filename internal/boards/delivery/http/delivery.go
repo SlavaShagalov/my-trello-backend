@@ -19,7 +19,7 @@ type delivery struct {
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -36,16 +36,16 @@ func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, chec
 		backgroundPath = boardPath + "/background"
 	)
 
-	mux.HandleFunc(workspaceBoardsPath, checkAuth(del.create)).Methods(http.MethodPost)
-	mux.HandleFunc(workspaceBoardsPath, checkAuth(del.listByWorkspace)).Methods(http.MethodGet)
+	mux.HandleFunc(workspaceBoardsPath, metrics(checkAuth(del.create))).Methods(http.MethodPost)
+	mux.HandleFunc(workspaceBoardsPath, metrics(checkAuth(del.listByWorkspace))).Methods(http.MethodGet)
 
-	mux.HandleFunc(boardsPath, checkAuth(del.list)).Methods(http.MethodGet).
+	mux.HandleFunc(boardsPath, metrics(checkAuth(del.list))).Methods(http.MethodGet).
 		Queries("title", "{title}")
 
-	mux.HandleFunc(boardPath, checkAuth(del.get)).Methods(http.MethodGet)
-	mux.HandleFunc(boardPath, checkAuth(del.partialUpdate)).Methods(http.MethodPatch)
-	mux.HandleFunc(backgroundPath, checkAuth(del.updateBackground)).Methods(http.MethodPut)
-	mux.HandleFunc(boardPath, checkAuth(del.delete)).Methods(http.MethodDelete)
+	mux.HandleFunc(boardPath, metrics(checkAuth(del.get))).Methods(http.MethodGet)
+	mux.HandleFunc(boardPath, metrics(checkAuth(del.partialUpdate))).Methods(http.MethodPatch)
+	mux.HandleFunc(backgroundPath, metrics(checkAuth(del.updateBackground))).Methods(http.MethodPut)
+	mux.HandleFunc(boardPath, metrics(checkAuth(del.delete))).Methods(http.MethodDelete)
 }
 
 // create godoc

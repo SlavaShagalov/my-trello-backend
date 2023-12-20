@@ -17,7 +17,7 @@ type delivery struct {
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -30,9 +30,9 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 		logoutPath = constants.ApiPrefix + authPrefix + "/logout"
 	)
 
-	mux.HandleFunc(signUpPath, del.signup).Methods(http.MethodPost)
-	mux.HandleFunc(signInPath, del.signin).Methods(http.MethodPost)
-	mux.HandleFunc(logoutPath, checkAuth(del.logout)).Methods(http.MethodDelete)
+	mux.HandleFunc(signUpPath, metrics(del.signup)).Methods(http.MethodPost)
+	mux.HandleFunc(signInPath, metrics(del.signin)).Methods(http.MethodPost)
+	mux.HandleFunc(logoutPath, metrics(checkAuth(del.logout))).Methods(http.MethodDelete)
 }
 
 // signup godoc

@@ -17,7 +17,7 @@ type delivery struct {
 	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, checkAuth mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
 		uc:  uc,
 		log: log,
@@ -32,15 +32,15 @@ func RegisterHandlers(mux *mux.Router, uc pCards.Usecase, log *zap.Logger, check
 		cardPath    = cardsPath + "/{id}"
 	)
 
-	mux.HandleFunc(listCardsPath, checkAuth(del.create)).Methods(http.MethodPost)
-	mux.HandleFunc(listCardsPath, checkAuth(del.listByList)).Methods(http.MethodGet)
+	mux.HandleFunc(listCardsPath, metrics(checkAuth(del.create))).Methods(http.MethodPost)
+	mux.HandleFunc(listCardsPath, metrics(checkAuth(del.listByList))).Methods(http.MethodGet)
 
-	mux.HandleFunc(cardsPath, checkAuth(del.list)).Methods(http.MethodGet).
+	mux.HandleFunc(cardsPath, metrics(checkAuth(del.list))).Methods(http.MethodGet).
 		Queries("title", "{title}")
 
-	mux.HandleFunc(cardPath, checkAuth(del.get)).Methods(http.MethodGet)
-	mux.HandleFunc(cardPath, checkAuth(del.partialUpdate)).Methods(http.MethodPatch)
-	mux.HandleFunc(cardPath, checkAuth(del.delete)).Methods(http.MethodDelete)
+	mux.HandleFunc(cardPath, metrics(checkAuth(del.get))).Methods(http.MethodGet)
+	mux.HandleFunc(cardPath, metrics(checkAuth(del.partialUpdate))).Methods(http.MethodPatch)
+	mux.HandleFunc(cardPath, metrics(checkAuth(del.delete))).Methods(http.MethodDelete)
 }
 
 // create godoc

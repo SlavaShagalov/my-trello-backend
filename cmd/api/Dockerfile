@@ -11,6 +11,9 @@ WORKDIR /src
 COPY cmd ./cmd
 COPY internal ./internal
 COPY docs ./docs
+COPY scripts ./scripts
+COPY make ./make
+COPY Makefile ./
 RUN make mocks
 RUN make easyjson
 RUN --mount=type=cache,target=/root/.cache/go-build \

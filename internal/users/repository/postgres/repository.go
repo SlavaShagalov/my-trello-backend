@@ -35,6 +35,7 @@ func (repo *repository) Create(params *pkgUsers.CreateParams) (models.User, erro
 		return models.User{}, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
+	repo.log.Debug("User created", zap.Int("id", user.ID), zap.String("username", user.Username))
 	return user, nil
 }
 
@@ -54,7 +55,7 @@ func (repo *repository) List() ([]models.User, error) {
 
 	users := []models.User{}
 	var user models.User
-	var avatar *sql.NullString
+	var avatar sql.NullString
 	for rows.Next() {
 		err = rows.Scan(
 			&user.ID,
@@ -62,7 +63,7 @@ func (repo *repository) List() ([]models.User, error) {
 			&user.Password,
 			&user.Email,
 			&user.Name,
-			avatar,
+			&avatar,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)

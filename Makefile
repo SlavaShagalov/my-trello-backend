@@ -74,7 +74,7 @@ format:
 .PHONY: run-test-containers
 run-test-containers:
 	#docker compose -f docker-compose.yml up -d --build db sessions-storage api-main balancer test
-	docker compose -f docker-compose.yml up -d --build test
+	docker compose -f docker-compose.yml up -d --build test-db test-sessions-db test-api test
 
 .PHONY: unit-test
 unit-test:
@@ -83,6 +83,7 @@ unit-test:
 .PHONY: integration-test
 integration-test:
 	go test ./tests/integration/...
+	#go test -count=50 ./tests/integration/...
 
 .PHONY: unit-cover
 unit-cover:
@@ -94,3 +95,8 @@ unit-cover:
 .PHONY: integration-cover
 integration-cover:
 	./scripts/db/run_integration_cover.sh
+
+suite = auth
+.PHONY: test-logs
+test-logs:
+	tail -f -n +1 "tests/logs/$(suite).log" | batcat --paging=never --language=log

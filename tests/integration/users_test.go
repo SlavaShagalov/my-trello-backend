@@ -1,13 +1,16 @@
-package old
+package integration
 
 import (
 	"database/sql"
-	"testing"
-
+	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"log"
+	"os"
+	"testing"
 
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
@@ -23,22 +26,32 @@ import (
 
 type UsersSuite struct {
 	suite.Suite
-	db     *sql.DB
-	logger *zap.Logger
-	repo   pkgUsers.Repository
-	uc     pkgUsers.Usecase
+	db      *sql.DB
+	logger  *zap.Logger
+	logfile *os.File
+	repo    pkgUsers.Repository
+	uc      pkgUsers.Usecase
 }
 
 func (s *UsersSuite) SetupSuite() {
-	s.logger = pkgZap.NewTestLogger()
-
 	var err error
+	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/users.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
+	config.SetDefaultValidationConfig()
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
 	s.repo = usersRepo.New(s.db, s.logger)
-	s.uc = usersUC.New(s.repo)
+	imgRepo := imgMocks.NewMockRepository(ctrl)
+	s.uc = usersUC.New(s.repo, imgRepo)
 }
 
 func (s *UsersSuite) TearDownSuite() {

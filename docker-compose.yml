@@ -24,9 +24,11 @@ services:
       - ./scripts/migrations/init_data.sql:/docker-entrypoint-initdb.d/5.sql
     ports:
       - "5432:5432"
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.2
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.2
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -49,14 +51,16 @@ services:
       - "5433:5432"
     depends_on:
       - db
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.3
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.3
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
 
-  sessions-storage:
+  sessions-db:
     image: redis:alpine3.18
     container_name: trello_sessions
     restart: always
@@ -65,9 +69,11 @@ services:
     command: redis-server --requirepass "${REDIS_PASSWORD}"
     ports:
       - "6379:6379"
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.4
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.4
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -84,14 +90,16 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - sessions-storage
+      - sessions-db
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_main.yaml:/configs/api.yaml
       - ./.aws:/root/.aws
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.5
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.5
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -106,13 +114,15 @@ services:
       - "8001:8001"
     depends_on:
       - db
-      - sessions-storage
+      - sessions-db
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_1.yaml:/configs/api.yaml
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.6
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.6
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -127,13 +137,15 @@ services:
       - "8002:8002"
     depends_on:
       - db
-      - sessions-storage
+      - sessions-db
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_read_2.yaml:/configs/api.yaml
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.7
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.7
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -148,13 +160,15 @@ services:
       - "8003:8003"
     depends_on:
       - db
-      - sessions-storage
+      - sessions-db
     volumes:
       - ./cmd/api/logs:/logs
       - ./configs/api_mirror.yaml:/configs/api.yaml
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.8
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.8
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -174,9 +188,11 @@ services:
       - "80:80"
     depends_on:
       - api-main
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.9
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.9
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -189,9 +205,11 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@vk.com
       PGADMIN_DEFAULT_PASSWORD: 1234
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.10
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.10
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -204,9 +222,71 @@ services:
       context: .
       dockerfile: ./tests/Dockerfile
     container_name: trello_test
+    depends_on:
+      - test-db
+      - test-sessions-db
+    volumes:
+      - ./tests/logs:/logs
     networks:
-      trello-network:
-        ipv4_address: 192.168.0.11
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  test-db:
+    image: postgres
+    container_name: trello_test_db
+    restart: always
+    environment:
+      POSTGRES_DB: "trello_db"
+      POSTGRES_USER: "moderator"
+      POSTGRES_PASSWORD: "2222"
+    volumes:
+      - ./scripts/migrations/schema.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./scripts/migrations/test_data.sql:/docker-entrypoint-initdb.d/2.sql
+    ports:
+      - "5432:5432"
+#    networks:
+#      trello-network:
+#        ipv4_address: 192.168.0.12
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  test-sessions-db:
+    image: redis:alpine3.18
+    container_name: trello_test_sessions_db
+    restart: always
+    environment:
+      REDIS_PASSWORD: "1234"
+    command: redis-server --requirepass "${REDIS_PASSWORD}"
+    ports:
+      - "6379:6379"
+    networks:
+      - trello-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  test-api:
+    image: trello_test_api
+    build:
+      context: .
+      dockerfile: ./cmd/api/Dockerfile
+    container_name: trello_test_api
+#    ports:
+#      - "8000:8000"
+    depends_on:
+      - test-db
+      - test-sessions-db
+    volumes:
+      - ./cmd/api/logs:/logs
+      - ./configs/api_test.yaml:/configs/api.yaml
+      - ./.aws:/root/.aws
+    networks:
+      - trello-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -215,6 +295,6 @@ networks:
   trello-network:
     name: trello_network
     driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.0.0/24
+#    ipam:
+#      config:
+#        - subnet: 192.168.0.0/24

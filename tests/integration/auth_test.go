@@ -1,4 +1,4 @@
-package old
+package integration
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"os"
 	"testing"
 
 	"github.com/redis/go-redis/v9"
@@ -30,14 +32,19 @@ type AuthSuite struct {
 	db        *sql.DB
 	rdb       *redis.Client
 	log       *zap.Logger
+	logfile   *os.File
 	usersRepo users.Repository
 	uc        pkgAuth.Usecase
 }
 
 func (s *AuthSuite) SetupSuite() {
-	s.log = pkgZap.NewTestLogger()
-
 	var err error
+	s.log, s.logfile, err = pkgZap.NewTestLogger("/logs/auth.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
 	s.db, err = pkgDb.NewPostgres(s.log)
 	s.Require().NoError(err)
@@ -62,7 +69,14 @@ func (s *AuthSuite) TearDownSuite() {
 	s.Require().NoError(err)
 	s.log.Info("Redis connection closed")
 
-	_ = s.log.Sync()
+	err = s.log.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s *AuthSuite) TestSignIn() {

@@ -22,13 +22,18 @@ func TestConfig() zapcore.EncoderConfig {
 	}
 }
 
-func NewTestLogger() *zap.Logger {
-	consoleCfg := TestConfig()
+func NewTestLogger(filePath string) (*zap.Logger, *os.File, error) {
+	cfg := TestConfig()
 
-	consoleEncoder := zapcore.NewConsoleEncoder(consoleCfg)
-	consoleCore := zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), zapcore.DebugLevel)
+	fileEncoder := zapcore.NewConsoleEncoder(cfg)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	logger := zap.New(consoleCore, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	fileCore := zapcore.NewCore(fileEncoder, zapcore.Lock(zapcore.AddSync(file)), zapcore.DebugLevel)
 
-	return logger
+	logger := zap.New(fileCore, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+
+	return logger, file, nil
 }

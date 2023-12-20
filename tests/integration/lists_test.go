@@ -1,19 +1,20 @@
-package old
+package integration
 
 import (
 	"database/sql"
+	pkgLists "github.com/SlavaShagalov/my-trello-backend/internal/lists"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"log"
+	"os"
 	"testing"
-
-	pkgLists "github.com/SlavaShagalov/my-trello-backend/internal/lists"
-	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	listsRepo "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	listsUC "github.com/SlavaShagalov/my-trello-backend/internal/lists/usecase"
@@ -21,15 +22,20 @@ import (
 
 type ListsSuite struct {
 	suite.Suite
-	db     *sql.DB
-	logger *zap.Logger
-	uc     pkgLists.Usecase
+	db      *sql.DB
+	logger  *zap.Logger
+	logfile *os.File
+	uc      pkgLists.Usecase
 }
 
 func (s *ListsSuite) SetupSuite() {
-	s.logger = pkgZap.NewTestLogger()
-
 	var err error
+	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/lists.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
@@ -42,7 +48,14 @@ func (s *ListsSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
 
-	_ = s.logger.Sync()
+	err = s.logger.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s *ListsSuite) TestCreate() {
@@ -162,7 +175,7 @@ func (s *ListsSuite) TestGet() {
 				ID:       8,
 				BoardID:  3,
 				Title:    "Прототипирование",
-				Position: 2,
+				Position: 0,
 			},
 			err: nil,
 		},

@@ -1,0 +1,20 @@
+# Server
+NAME: test
+PORT: 8000
+
+# Postgres
+PG_HOST: test-db
+PG_PORT: 5432
+PG_DB: trello_db
+PG_USER: moderator
+PG_PASSWORD: 2222
+PG_SSL_MODE: disable
+
+# Redis
+REDIS_HOST: test-sessions-db
+REDIS_PORT: 6379
+REDIS_PASSWORD: 1234
+
+# Validation
+MIN_USERNAME_LEN: 4
+MAX_USERNAME_LEN: 30

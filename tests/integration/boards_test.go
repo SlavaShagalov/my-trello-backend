@@ -1,48 +1,67 @@
-package old
+package integration
 
 import (
 	"database/sql"
+	pkgBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"log"
+	"os"
 	"testing"
-
-	pkgBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
-	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	boardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
 	boardsUC "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
+	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
 )
 
 type BoardsSuite struct {
 	suite.Suite
-	db     *sql.DB
-	logger *zap.Logger
-	uc     pkgBoards.Usecase
+	db      *sql.DB
+	logger  *zap.Logger
+	logfile *os.File
+	uc      pkgBoards.Usecase
 }
 
 func (s *BoardsSuite) SetupSuite() {
-	s.logger = pkgZap.NewTestLogger()
-
 	var err error
+	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/boards.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
 
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
 	repo := boardsRepo.New(s.db, s.logger)
-	s.uc = boardsUC.New(repo)
+	imgRepo := imgMocks.NewMockRepository(ctrl)
+	s.uc = boardsUC.New(repo, imgRepo)
 }
 
 func (s *BoardsSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
 
-	_ = s.logger.Sync()
+	err = s.logger.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s *BoardsSuite) TestCreate() {

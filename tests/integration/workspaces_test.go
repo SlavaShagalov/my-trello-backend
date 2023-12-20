@@ -1,19 +1,20 @@
-package old
+package integration
 
 import (
 	"database/sql"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	pkgWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"log"
+	"os"
 	"testing"
-
-	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
-	pkgWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 
 	workspacesRepo "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
 	workspacesUC "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/usecase"
@@ -21,15 +22,20 @@ import (
 
 type WorkspacesSuite struct {
 	suite.Suite
-	db     *sql.DB
-	logger *zap.Logger
-	uc     pkgWorkspaces.Usecase
+	db      *sql.DB
+	logger  *zap.Logger
+	logfile *os.File
+	uc      pkgWorkspaces.Usecase
 }
 
 func (s *WorkspacesSuite) SetupSuite() {
-	s.logger = pkgZap.NewTestLogger()
-
 	var err error
+	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/workspaces.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
@@ -42,7 +48,14 @@ func (s *WorkspacesSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
 
-	_ = s.logger.Sync()
+	err = s.logger.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s *WorkspacesSuite) TestCreate() {

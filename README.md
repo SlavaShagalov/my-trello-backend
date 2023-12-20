@@ -6,5 +6,10 @@
 - Postgres, Replication Primary-StandBy
 - Redis
 - S3 storage
+- Nginx
 - Docker, Docker Compose
 - Allure
+- Prometheus, Node Exporter
+- Grafana
+- GitHub Actions (CI)
+- OpenAPI, Swagger

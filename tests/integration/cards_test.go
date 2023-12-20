@@ -1,19 +1,20 @@
-package old
+package integration
 
 import (
 	"database/sql"
+	pkgCards "github.com/SlavaShagalov/my-trello-backend/internal/cards"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"log"
+	"os"
 	"testing"
-
-	pkgCards "github.com/SlavaShagalov/my-trello-backend/internal/cards"
-	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 
 	cardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
 	cardsUC "github.com/SlavaShagalov/my-trello-backend/internal/cards/usecase"
@@ -21,15 +22,20 @@ import (
 
 type CardsSuite struct {
 	suite.Suite
-	db     *sql.DB
-	logger *zap.Logger
-	uc     pkgCards.Usecase
+	db      *sql.DB
+	logger  *zap.Logger
+	logfile *os.File
+	uc      pkgCards.Usecase
 }
 
 func (s *CardsSuite) SetupSuite() {
-	s.logger = pkgZap.NewTestLogger()
-
 	var err error
+	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/cards.log")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	config.SetTestPostgresConfig()
 	s.db, err = pkgDb.NewPostgres(s.logger)
 	s.Require().NoError(err)
@@ -42,7 +48,14 @@ func (s *CardsSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
 
-	_ = s.logger.Sync()
+	err = s.logger.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (s *CardsSuite) TestCreate() {
@@ -171,7 +184,7 @@ func (s *CardsSuite) TestGet() {
 				ListID:   3,
 				Title:    "Проведение приемочных тестов",
 				Content:  "Провести приемочное тестирование и подтвердить работоспособность",
-				Position: 2,
+				Position: 0,
 			},
 			err: nil,
 		},

@@ -184,7 +184,7 @@ func (s *CardsSuite) TestGet() {
 				ListID:   3,
 				Title:    "Проведение приемочных тестов",
 				Content:  "Провести приемочное тестирование и подтвердить работоспособность",
-				Position: 0,
+				Position: 1,
 			},
 			err: nil,
 		},

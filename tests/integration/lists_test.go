@@ -175,7 +175,7 @@ func (s *ListsSuite) TestGet() {
 				ID:       8,
 				BoardID:  3,
 				Title:    "Прототипирование",
-				Position: 0,
+				Position: 1,
 			},
 			err: nil,
 		},

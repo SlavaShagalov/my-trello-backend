@@ -47,7 +47,7 @@ func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
 				WorkspaceID: 27,
 			},
 			board: models.Board{
-				ID:          21,
+				ID:          210,
 				WorkspaceID: 27,
 				Title:       "University",
 				Description: "University Board",

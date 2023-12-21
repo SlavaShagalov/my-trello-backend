@@ -6,7 +6,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	pkgWorkspaces "github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ func (s *WorkspacesSuite) SetupSuite() {
 	}
 
 	config.SetTestPostgresConfig()
-	s.db, err = pkgDb.NewPostgres(s.logger)
+	s.db, err = pkgDb.NewStd(s.logger)
 	s.Require().NoError(err)
 
 	repo := workspacesRepo.New(s.db, s.logger)

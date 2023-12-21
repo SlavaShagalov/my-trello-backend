@@ -7,7 +7,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -37,7 +37,7 @@ func (s *CardsSuite) SetupSuite() {
 	}
 
 	config.SetTestPostgresConfig()
-	s.db, err = pkgDb.NewPostgres(s.logger)
+	s.db, err = pkgDb.NewStd(s.logger)
 	s.Require().NoError(err)
 
 	repo := cardsRepo.New(s.db, s.logger)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -46,7 +47,7 @@ func (s *AuthSuite) SetupSuite() {
 	}
 
 	config.SetTestPostgresConfig()
-	s.db, err = pkgDb.NewPostgres(s.log)
+	s.db, err = postgres.NewStd(s.log)
 	s.Require().NoError(err)
 
 	config.SetTestRedisConfig()

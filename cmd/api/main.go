@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
-	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
+	"github.com/SlavaShagalov/my-trello-backend/internal/boards"
+	boardsRepositoryPgx "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/pgx"
+	boardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/std"
+	"github.com/SlavaShagalov/my-trello-backend/internal/cards"
 	cardsRepository "github.com/SlavaShagalov/my-trello-backend/internal/cards/repository/postgres"
 	imagesRepository "github.com/SlavaShagalov/my-trello-backend/internal/images/repository/s3"
+	"github.com/SlavaShagalov/my-trello-backend/internal/lists"
 	listsRepository "github.com/SlavaShagalov/my-trello-backend/internal/lists/repository/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
@@ -12,8 +16,11 @@ import (
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
 	pMetrics "github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
 	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
+	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
+	"github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
 	"log"
 	"net/http"
@@ -94,7 +101,7 @@ func main() {
 	logger.Info("API service starting...")
 
 	// Data Storage
-	db, err := pStorages.NewPostgres(logger)
+	db, err := postgres.NewStd(logger)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -137,13 +144,30 @@ func main() {
 	hasher := pHasher.New()
 
 	// Repo
+	var usersRepo users.Repository
+	var workspacesRepo workspaces.Repository
+	var boardsRepo boards.Repository
+	var listsRepo lists.Repository
+	var cardsRepo cards.Repository
+	usersRepo = usersRepository.New(db, logger)
+	workspacesRepo = workspacesRepository.New(db, logger)
+	listsRepo = listsRepository.New(db, logger)
+	cardsRepo = cardsRepository.New(db, logger)
+
+	mode := "std"
+	if mode == "std" {
+		boardsRepo = boardsRepository.New(db, logger)
+	} else if mode == "pgx" {
+		pgxPool, err := postgres.NewPgx(logger)
+		if err != nil {
+			os.Exit(1)
+		}
+
+		boardsRepo = boardsRepositoryPgx.New(pgxPool, logger)
+	}
+
 	imagesRepo := imagesRepository.New(s3Client, logger)
 	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
-	usersRepo := usersRepository.New(db, logger)
-	workspacesRepo := workspacesRepository.New(db, logger)
-	boardsRepo := boardsRepository.New(db, logger)
-	listsRepo := listsRepository.New(db, logger)
-	cardsRepo := cardsRepository.New(db, logger)
 
 	// Use cases
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)

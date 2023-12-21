@@ -15,9 +15,26 @@ start:
 	docker compose -f docker-compose.yml up -d --build db db-repl ds-admin api-main api-read-1 api-read-2 api-mirror balancer
 	#docker compose -f docker-compose.yml up -d --build ds-admin api-main balancer
 
+#.PHONY: stop
+#stop:
+#	docker compose -f docker-compose.yml stop
+
+.PHONY: up
+up:
+	make api-up
+	make monitoring-up
+
 .PHONY: stop
 stop:
-	docker compose -f docker-compose.yml stop
+	make api-stop
+	make monitoring-stop
+
+.PHONY: down
+down:
+	docker compose down -v
+	sudo rm -rf ./postgres/primary/pgdata
+	sudo rm -rf ./postgres/primary/archive
+	sudo rm -rf ./postgres/standby/pgdata
 
 .PHONY: api-up
 api-up:

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,6 +21,8 @@ func NewMetrics(mt metrics.PrometheusMetrics) func(h http.HandlerFunc) http.Hand
 			mt.ExecutionTime().
 				WithLabelValues(strconv.Itoa(httpCode), r.URL.String(), r.Method).
 				Observe(float64(time.Since(begin).Milliseconds()))
+
+			log.Println(strconv.Itoa(httpCode), r.URL.String(), r.Method, "MS", time.Since(begin).Milliseconds())
 
 			mt.TotalHits().Inc()
 

@@ -3,6 +3,7 @@ package integration
 import (
 	"database/sql"
 	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,8 +18,6 @@ import (
 
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
-
 	pkgUsers "github.com/SlavaShagalov/my-trello-backend/internal/users"
 	usersRepo "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	usersUC "github.com/SlavaShagalov/my-trello-backend/internal/users/usecase"
@@ -43,7 +42,7 @@ func (s *UsersSuite) SetupSuite() {
 
 	config.SetTestPostgresConfig()
 	config.SetDefaultValidationConfig()
-	s.db, err = pkgDb.NewPostgres(s.logger)
+	s.db, err = pkgDb.NewStd(s.logger)
 	s.Require().NoError(err)
 
 	ctrl := gomock.NewController(s.T())

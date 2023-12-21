@@ -7,7 +7,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
+	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	boardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/postgres"
+	boardsRepo "github.com/SlavaShagalov/my-trello-backend/internal/boards/repository/std"
 	boardsUC "github.com/SlavaShagalov/my-trello-backend/internal/boards/usecase"
 	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
 )
@@ -39,7 +39,7 @@ func (s *BoardsSuite) SetupSuite() {
 	}
 
 	config.SetTestPostgresConfig()
-	s.db, err = pkgDb.NewPostgres(s.logger)
+	s.db, err = pkgDb.NewStd(s.logger)
 	s.Require().NoError(err)
 
 	ctrl := gomock.NewController(s.T())

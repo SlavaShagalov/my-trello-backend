@@ -1,6 +1,7 @@
 package boards
 
 import (
+	"github.com/SlavaShagalov/my-trello-backend/tests/utils/builder"
 	"reflect"
 	"testing"
 
@@ -19,6 +20,14 @@ import (
 
 type BoardsUsecaseSuite struct {
 	suite.Suite
+
+	boardBuilder *builder.BoardBuilder
+}
+
+func (s *BoardsUsecaseSuite) BeforeEach(t provider.T) {
+	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+
+	s.boardBuilder = builder.NewBoardBuilder()
 }
 
 func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
@@ -46,12 +55,12 @@ func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
 				Description: "University Board",
 				WorkspaceID: 27,
 			},
-			board: models.Board{
-				ID:          21,
-				WorkspaceID: 27,
-				Title:       "University",
-				Description: "University Board",
-			},
+			board: s.boardBuilder.
+				WithID(21).
+				WithWorkspaceID(27).
+				WithTitle("University").
+				WithDescription("University Board").
+				Build(),
 			err: nil,
 		},
 		"workspace not found": {
@@ -59,7 +68,7 @@ func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
 				f.repo.EXPECT().Create(f.params).Return(*f.board, pkgErrors.ErrWorkspaceNotFound)
 			},
 			params: &pkgBoards.CreateParams{Title: "University", Description: "University Board", WorkspaceID: 27},
-			board:  models.Board{},
+			board:  s.boardBuilder.Build(),
 			err:    pkgErrors.ErrWorkspaceNotFound,
 		},
 		"storages error": {
@@ -67,7 +76,7 @@ func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
 				f.repo.EXPECT().Create(f.params).Return(*f.board, pkgErrors.ErrDb)
 			},
 			params: &pkgBoards.CreateParams{Title: "University", Description: "University Board", WorkspaceID: 27},
-			board:  models.Board{},
+			board:  s.boardBuilder.Build(),
 			err:    pkgErrors.ErrDb,
 		},
 	}
@@ -123,9 +132,24 @@ func (s *BoardsUsecaseSuite) TestList(t provider.T) {
 			},
 			workspaceID: 27,
 			boards: []models.Board{
-				{ID: 21, WorkspaceID: 27, Title: "University", Description: "BMSTU Board"},
-				{ID: 22, WorkspaceID: 27, Title: "Life", Description: "Life Board"},
-				{ID: 23, WorkspaceID: 27, Title: "Work", Description: "Work Board"},
+				s.boardBuilder.
+					WithID(21).
+					WithWorkspaceID(27).
+					WithTitle("University").
+					WithDescription("University Board").
+					Build(),
+				s.boardBuilder.
+					WithID(22).
+					WithWorkspaceID(27).
+					WithTitle("Life").
+					WithDescription("Life Board").
+					Build(),
+				s.boardBuilder.
+					WithID(23).
+					WithWorkspaceID(27).
+					WithTitle("Work").
+					WithDescription("Work Board").
+					Build(),
 			},
 			err: nil,
 		},
@@ -151,8 +175,7 @@ func (s *BoardsUsecaseSuite) TestList(t provider.T) {
 			},
 			workspaceID: 27,
 			boards:      nil,
-			//err:         pkgErrors.ErrDb,
-			err: nil,
+			err:         pkgErrors.ErrDb,
 		},
 	}
 
@@ -205,12 +228,12 @@ func (s *BoardsUsecaseSuite) TestGet(t provider.T) {
 				f.repo.EXPECT().Get(f.id).Return(*f.board, nil)
 			},
 			id: 21,
-			board: models.Board{
-				ID:          21,
-				WorkspaceID: 27,
-				Title:       "University",
-				Description: "University Board",
-			},
+			board: s.boardBuilder.
+				WithID(21).
+				WithWorkspaceID(27).
+				WithTitle("University").
+				WithDescription("University Board").
+				Build(),
 			err: nil,
 		},
 		"board not found": {
@@ -218,15 +241,15 @@ func (s *BoardsUsecaseSuite) TestGet(t provider.T) {
 				f.repo.EXPECT().Get(f.id).Return(*f.board, pkgErrors.ErrBoardNotFound)
 			},
 			id:    21,
-			board: models.Board{},
+			board: s.boardBuilder.Build(),
 			err:   pkgErrors.ErrBoardNotFound,
 		},
-		"storages error": {
+		"db error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.board, pkgErrors.ErrDb)
 			},
 			id:    21,
-			board: models.Board{},
+			board: s.boardBuilder.Build(),
 			err:   pkgErrors.ErrDb,
 		},
 	}
@@ -285,8 +308,13 @@ func (s *BoardsUsecaseSuite) TestFullUpdate(t provider.T) {
 				Description: "University Board",
 				WorkspaceID: 27,
 			},
-			board: models.Board{ID: 21, WorkspaceID: 27, Title: "University", Description: "University Board"},
-			err:   nil,
+			board: s.boardBuilder.
+				WithID(21).
+				WithWorkspaceID(27).
+				WithTitle("University").
+				WithDescription("University Board").
+				Build(),
+			err: nil,
 		},
 	}
 
@@ -347,8 +375,13 @@ func (s *BoardsUsecaseSuite) TestPartialUpdate(t provider.T) {
 				WorkspaceID:       27,
 				UpdateWorkspaceID: true,
 			},
-			board: models.Board{ID: 21, WorkspaceID: 27, Title: "University", Description: "University Board"},
-			err:   nil,
+			board: s.boardBuilder.
+				WithID(21).
+				WithWorkspaceID(27).
+				WithTitle("University").
+				WithDescription("University Board").
+				Build(),
+			err: nil,
 		},
 	}
 

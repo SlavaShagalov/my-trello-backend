@@ -6,6 +6,7 @@ import (
 	listsUsecase "github.com/SlavaShagalov/my-trello-backend/internal/lists/usecase"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	"github.com/SlavaShagalov/my-trello-backend/tests/utils/builder"
 	"github.com/golang/mock/gomock"
 	"github.com/ozontech/allure-go/pkg/framework/provider"
 	"github.com/ozontech/allure-go/pkg/framework/suite"
@@ -16,6 +17,14 @@ import (
 
 type ListsUsecaseSuite struct {
 	suite.Suite
+
+	listsBuilder *builder.ListBuilder
+}
+
+func (s *ListsUsecaseSuite) BeforeEach(t provider.T) {
+	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+
+	s.listsBuilder = builder.NewListBuilder()
 }
 
 func (s *ListsUsecaseSuite) TestCreate(t provider.T) {
@@ -41,15 +50,20 @@ func (s *ListsUsecaseSuite) TestCreate(t provider.T) {
 				Title:   "MathStat",
 				BoardID: 27,
 			},
-			list: models.List{ID: 21, BoardID: 27, Title: "MathStat", Position: 41},
-			err:  nil,
+			list: s.listsBuilder.
+				WithID(21).
+				WithBoardID(27).
+				WithTitle("MathStat").
+				WithPosition(41).
+				Build(),
+			err: nil,
 		},
 		"board not found": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.list, pkgErrors.ErrBoardNotFound)
 			},
 			params: &pkgLists.CreateParams{Title: "MathStat", BoardID: 27},
-			list:   models.List{},
+			list:   s.listsBuilder.Build(),
 			err:    pkgErrors.ErrBoardNotFound,
 		},
 		"storages error": {
@@ -57,7 +71,7 @@ func (s *ListsUsecaseSuite) TestCreate(t provider.T) {
 				f.repo.EXPECT().Create(f.params).Return(*f.list, pkgErrors.ErrDb)
 			},
 			params: &pkgLists.CreateParams{Title: "MathStat", BoardID: 27},
-			list:   models.List{},
+			list:   s.listsBuilder.Build(),
 			err:    pkgErrors.ErrDb,
 		},
 	}
@@ -108,9 +122,24 @@ func (s *ListsUsecaseSuite) TestList(t provider.T) {
 			},
 			boardID: 27,
 			lists: []models.List{
-				{ID: 21, BoardID: 27, Title: "MathStat", Position: 41},
-				{ID: 22, BoardID: 27, Title: "Software Design", Position: 42},
-				{ID: 23, BoardID: 27, Title: "Operating Systems", Position: 43},
+				s.listsBuilder.
+					WithID(21).
+					WithBoardID(27).
+					WithTitle("MathStat").
+					WithPosition(41).
+					Build(),
+				s.listsBuilder.
+					WithID(22).
+					WithBoardID(27).
+					WithTitle("Software Design").
+					WithPosition(42).
+					Build(),
+				s.listsBuilder.
+					WithID(23).
+					WithBoardID(27).
+					WithTitle("Operating Systems").
+					WithPosition(43).
+					Build(),
 			},
 			err: nil,
 		},
@@ -184,24 +213,29 @@ func (s *ListsUsecaseSuite) TestGet(t provider.T) {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.list, nil)
 			},
-			id:   21,
-			list: models.List{ID: 21, BoardID: 27, Title: "MathStat", Position: 41},
-			err:  nil,
+			id: 21,
+			list: s.listsBuilder.
+				WithID(21).
+				WithBoardID(27).
+				WithTitle("MathStat").
+				WithPosition(41).
+				Build(),
+			err: nil,
 		},
 		"list not found": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.list, pkgErrors.ErrListNotFound)
 			},
 			id:   21,
-			list: models.List{},
+			list: s.listsBuilder.Build(),
 			err:  pkgErrors.ErrListNotFound,
 		},
-		"storages error": {
+		"db error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Get(f.id).Return(*f.list, pkgErrors.ErrDb)
 			},
 			id:   21,
-			list: models.List{},
+			list: s.listsBuilder.Build(),
 			err:  pkgErrors.ErrDb,
 		},
 	}
@@ -251,8 +285,13 @@ func (s *ListsUsecaseSuite) TestFullUpdate(t provider.T) {
 				f.repo.EXPECT().FullUpdate(f.params).Return(*f.list, nil)
 			},
 			params: &pkgLists.FullUpdateParams{ID: 21, Title: "MathStat", Position: 41, BoardID: 27},
-			list:   models.List{ID: 21, BoardID: 27, Title: "MathStat", Position: 41},
-			err:    nil,
+			list: s.listsBuilder.
+				WithID(21).
+				WithBoardID(27).
+				WithTitle("MathStat").
+				WithPosition(41).
+				Build(),
+			err: nil,
 		},
 	}
 
@@ -309,8 +348,13 @@ func (s *ListsUsecaseSuite) TestPartialUpdate(t provider.T) {
 				BoardID:        27,
 				UpdateBoardID:  true,
 			},
-			list: models.List{ID: 21, BoardID: 27, Title: "MathStat", Position: 41},
-			err:  nil,
+			list: s.listsBuilder.
+				WithID(21).
+				WithBoardID(27).
+				WithTitle("MathStat").
+				WithPosition(41).
+				Build(),
+			err: nil,
 		},
 	}
 

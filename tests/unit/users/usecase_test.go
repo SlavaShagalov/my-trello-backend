@@ -2,6 +2,7 @@ package users
 
 import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
+	"github.com/SlavaShagalov/my-trello-backend/tests/utils/builder"
 	"reflect"
 	"testing"
 
@@ -20,6 +21,8 @@ import (
 
 type UsersUsecaseSuite struct {
 	suite.Suite
+
+	uBuilder *builder.UserBuilder
 }
 
 func (s *UsersUsecaseSuite) BeforeAll(t provider.T) {
@@ -34,6 +37,8 @@ func (s *UsersUsecaseSuite) AfterAll(t provider.T) {
 
 func (s *UsersUsecaseSuite) BeforeEach(t provider.T) {
 	t.WithNewStep("SetupTest step", func(ctx provider.StepCtx) {})
+
+	s.uBuilder = builder.NewUserBuilder()
 }
 
 func (s *UsersUsecaseSuite) AfterEach(t provider.T) {
@@ -59,27 +64,27 @@ func (s *UsersUsecaseSuite) TestList(t provider.T) {
 				f.repo.EXPECT().List().Return(f.users, nil)
 			},
 			users: []models.User{
-				{
-					ID:       21,
-					Username: "slava",
-					Password: "hash1",
-					Email:    "slava@vk.com",
-					Name:     "Slava",
-				},
-				{
-					ID:       22,
-					Username: "petya",
-					Password: "hash2",
-					Email:    "petya@vk.com",
-					Name:     "Petya",
-				},
-				{
-					ID:       23,
-					Username: "misha",
-					Password: "hash3",
-					Email:    "misha@vk.com",
-					Name:     "Misha",
-				},
+				s.uBuilder.
+					WithID(21).
+					WithUsername("slava").
+					WithPassword("hash1").
+					WithEmail("slava@vk.com").
+					WithName("Slava").
+					Build(),
+				s.uBuilder.
+					WithID(22).
+					WithUsername("petya").
+					WithPassword("hash2").
+					WithEmail("petya@vk.com").
+					WithName("Petya").
+					Build(),
+				s.uBuilder.
+					WithID(23).
+					WithUsername("misha").
+					WithPassword("hash3").
+					WithEmail("misha@vk.com").
+					WithName("Misha").
+					Build(),
 			},
 			err: nil,
 		},
@@ -149,13 +154,13 @@ func (s *UsersUsecaseSuite) TestGet(t provider.T) {
 				f.repo.EXPECT().Get(f.userID).Return(*f.user, nil)
 			},
 			userID: 21,
-			user: models.User{
-				ID:       21,
-				Username: "slava",
-				Password: "hash1",
-				Email:    "slava@vk.com",
-				Name:     "Slava",
-			},
+			user: s.uBuilder.
+				WithID(21).
+				WithUsername("slava").
+				WithPassword("hash1").
+				WithEmail("slava@vk.com").
+				WithName("Slava").
+				Build(),
 			err: nil,
 		},
 		"storages error": {
@@ -163,7 +168,7 @@ func (s *UsersUsecaseSuite) TestGet(t provider.T) {
 				f.repo.EXPECT().Get(f.userID).Return(*f.user, pkgErrors.ErrDb)
 			},
 			userID: 21,
-			user:   models.User{},
+			user:   s.uBuilder.Build(),
 			err:    pkgErrors.ErrDb,
 		},
 	}
@@ -214,13 +219,13 @@ func (s *UsersUsecaseSuite) TestGetByUsername(t provider.T) {
 				f.repo.EXPECT().GetByUsername(f.username).Return(*f.user, nil)
 			},
 			username: "slava",
-			user: models.User{
-				ID:       21,
-				Username: "slava",
-				Password: "hash1",
-				Email:    "slava@vk.com",
-				Name:     "Slava",
-			},
+			user: s.uBuilder.
+				WithID(21).
+				WithUsername("slava").
+				WithPassword("hash1").
+				WithEmail("slava@vk.com").
+				WithName("Slava").
+				Build(),
 			err: nil,
 		},
 		"storages error": {
@@ -228,7 +233,7 @@ func (s *UsersUsecaseSuite) TestGetByUsername(t provider.T) {
 				f.repo.EXPECT().GetByUsername(f.username).Return(*f.user, pkgErrors.ErrDb)
 			},
 			username: "slava",
-			user:     models.User{},
+			user:     s.uBuilder.Build(),
 			err:      pkgErrors.ErrDb,
 		},
 	}
@@ -285,8 +290,14 @@ func (s *UsersUsecaseSuite) TestFullUpdate(t provider.T) {
 				Email:    "slava@vk.com",
 				Name:     "Slava",
 			},
-			user: models.User{ID: 21, Username: "slava", Email: "slava@vk.com", Name: "Slava"},
-			err:  nil,
+			user: s.uBuilder.
+				WithID(21).
+				WithUsername("slava").
+				WithPassword("hash1").
+				WithEmail("slava@vk.com").
+				WithName("Slava").
+				Build(),
+			err: nil,
 		},
 	}
 
@@ -345,8 +356,14 @@ func (s *UsersUsecaseSuite) TestPartialUpdate(t provider.T) {
 				Name:           "Slava",
 				UpdateName:     true,
 			},
-			user: models.User{ID: 21, Username: "slava", Email: "slava@vk.com", Name: "Slava"},
-			err:  nil,
+			user: s.uBuilder.
+				WithID(21).
+				WithUsername("slava").
+				WithPassword("hash1").
+				WithEmail("slava@vk.com").
+				WithName("Slava").
+				Build(),
+			err: nil,
 		},
 	}
 

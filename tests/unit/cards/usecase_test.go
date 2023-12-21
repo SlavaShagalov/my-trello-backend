@@ -59,7 +59,7 @@ func (s *CardsUsecaseSuite) TestCreate(t provider.T) {
 			card:   models.Card{},
 			err:    pkgErrors.ErrListNotFound,
 		},
-		"storages error": {
+		"db error": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().Create(f.params).Return(*f.card, pkgErrors.ErrDb)
 			},

@@ -44,10 +44,10 @@ func (s *BoardsUsecaseSuite) TestCreate(t provider.T) {
 			params: &pkgBoards.CreateParams{
 				Title:       "University",
 				Description: "University Board",
-				WorkspaceID: 27,
+				WorkspaceID: 270,
 			},
 			board: models.Board{
-				ID:          210,
+				ID:          21,
 				WorkspaceID: 27,
 				Title:       "University",
 				Description: "University Board",

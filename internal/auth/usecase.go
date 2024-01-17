@@ -1,6 +1,9 @@
 package auth
 
-import "github.com/SlavaShagalov/my-trello-backend/internal/models"
+import (
+	"context"
+	"github.com/SlavaShagalov/my-trello-backend/internal/models"
+)
 
 type SignInParams struct {
 	Username string
@@ -15,7 +18,7 @@ type SignUpParams struct {
 }
 
 type Usecase interface {
-	SignIn(params *SignInParams) (models.User, string, error)
+	SignIn(ctx context.Context, params *SignInParams) (models.User, string, error)
 	SignUp(params *SignUpParams) (models.User, string, error)
 	CheckAuth(userID int, authToken string) (int, error)
 	Logout(userID int, authToken string) error

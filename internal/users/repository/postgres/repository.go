@@ -1,22 +1,29 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgUsers "github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type repository struct {
-	db  *sql.DB
-	log *zap.Logger
+	db     *sql.DB
+	log    *zap.Logger
+	tracer trace.Tracer
 }
 
-func New(db *sql.DB, log *zap.Logger) pkgUsers.Repository {
-	return &repository{db: db, log: log}
+func New(db *sql.DB, log *zap.Logger, tracer trace.Tracer) pkgUsers.Repository {
+	return &repository{
+		db:     db,
+		log:    log,
+		tracer: tracer,
+	}
 }
 
 const createCmd = `
@@ -112,7 +119,10 @@ const getByUsernameCmd = `
 	FROM users
 	WHERE username = $1;`
 
-func (repo *repository) GetByUsername(username string) (models.User, error) {
+func (repo *repository) GetByUsername(ctx context.Context, username string) (models.User, error) {
+	_, span := repo.tracer.Start(ctx, "Users Repo GetByUsername")
+	defer span.End()
+
 	row := repo.db.QueryRow(getByUsernameCmd, username)
 
 	var user models.User

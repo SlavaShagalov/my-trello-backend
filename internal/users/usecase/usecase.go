@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"github.com/SlavaShagalov/my-trello-backend/internal/images"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
@@ -38,7 +39,7 @@ func (uc *usecase) Get(id int) (models.User, error) {
 }
 
 func (uc *usecase) GetByUsername(username string) (models.User, error) {
-	return uc.usersRepo.GetByUsername(username)
+	return uc.usersRepo.GetByUsername(context.TODO(), username)
 }
 
 func (uc *usecase) FullUpdate(params *users.FullUpdateParams) (models.User, error) {
@@ -48,7 +49,7 @@ func (uc *usecase) FullUpdate(params *users.FullUpdateParams) (models.User, erro
 		return models.User{}, err
 	}
 
-	_, err := uc.usersRepo.GetByUsername(params.Username)
+	_, err := uc.usersRepo.GetByUsername(context.TODO(), params.Username)
 	if !errors.Is(err, pkgErrors.ErrUserNotFound) {
 		if err != nil {
 			return models.User{}, err
@@ -65,7 +66,7 @@ func (uc *usecase) PartialUpdate(params *users.PartialUpdateParams) (models.User
 			return models.User{}, err
 		}
 
-		_, err := uc.usersRepo.GetByUsername(params.Username)
+		_, err := uc.usersRepo.GetByUsername(context.TODO(), params.Username)
 		if !errors.Is(err, pkgErrors.ErrUserNotFound) {
 			if err != nil {
 				return models.User{}, err

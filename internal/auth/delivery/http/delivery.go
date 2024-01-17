@@ -7,20 +7,24 @@ import (
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
 type delivery struct {
-	uc  auth.Usecase
-	log *zap.Logger
+	uc     auth.Usecase
+	log    *zap.Logger
+	tracer trace.Tracer
 }
 
-func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware,
+	tracer trace.Tracer) {
 	del := delivery{
-		uc:  uc,
-		log: log,
+		uc:     uc,
+		log:    log,
+		tracer: tracer,
 	}
 
 	const (
@@ -48,8 +52,8 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 //	@Failure		405
 //	@Failure		500
 //	@Router			/auth/signup [post]
-func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
-	body, err := pHTTP.ReadBody(r, del.log)
+func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
+	body, err := pHTTP.ReadBody(r, d.log)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -69,7 +73,7 @@ func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 		Password: request.Password,
 	}
 
-	user, authToken, err := del.uc.SignUp(&params)
+	user, authToken, err := d.uc.SignUp(&params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -96,8 +100,12 @@ func (del *delivery) signup(w http.ResponseWriter, r *http.Request) {
 //	@Failure		405
 //	@Failure		500
 //	@Router			/auth/signin [post]
-func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
-	body, err := pHTTP.ReadBody(r, del.log)
+func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
+	ctx, span := d.tracer.Start(r.Context(), "HTTP GET /signin")
+	time.Sleep(3 * time.Millisecond)
+	defer span.End()
+
+	body, err := pHTTP.ReadBody(r, d.log)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -115,11 +123,12 @@ func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 		Password: request.Password,
 	}
 
-	user, authToken, err := del.uc.SignIn(&params)
+	user, authToken, err := d.uc.SignIn(ctx, &params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
 	}
+	time.Sleep(2 * time.Millisecond)
 
 	sessionCookie := createSessionCookie(authToken)
 	http.SetCookie(w, sessionCookie)
@@ -142,7 +151,7 @@ func (del *delivery) signin(w http.ResponseWriter, r *http.Request) {
 //	@Router			/auth/logout [delete]
 //
 //	@Security		cookieAuth
-func (del *delivery) logout(w http.ResponseWriter, r *http.Request) {
+func (d *delivery) logout(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
@@ -154,7 +163,7 @@ func (del *delivery) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := del.uc.Logout(userID, authToken)
+	err := d.uc.Logout(userID, authToken)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return

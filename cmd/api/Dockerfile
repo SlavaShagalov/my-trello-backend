@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine3.18 AS install
+FROM golang:1.21-alpine3.18 AS install
 RUN apk add --no-cache git make bash
 RUN go install github.com/golang/mock/mockgen@v1.6.0
 RUN go install github.com/mailru/easyjson/...@latest

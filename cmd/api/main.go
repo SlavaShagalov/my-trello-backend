@@ -15,6 +15,7 @@ import (
 	pHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
 	pMetrics "github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
 	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
@@ -22,6 +23,7 @@ import (
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
+	"go.opentelemetry.io/otel"
 	"log"
 	"net/http"
 	"os"
@@ -67,6 +69,8 @@ import (
 //	@in							cookie
 //	@name						JSESSIONID
 func main() {
+	ctx := context.Background()
+
 	// Config
 	config.SetDefaultPostgresConfig()
 	config.SetDefaultRedisConfig()
@@ -100,6 +104,24 @@ func main() {
 	}()
 	logger.Info("API service starting...")
 
+	// Set up OpenTelemetry.
+	// For testing to print out traces to the console
+	//exp, err := ot.NewConsoleExporter()
+	exp, err := ot.NewOTLPExporter(ctx)
+	if err != nil {
+		logger.Error("Failed to initialize exporter", zap.Error(err))
+	}
+
+	// Create a new tracer provider with a batch span processor and the given exporter.
+	tp := ot.NewTraceProvider(exp)
+	// Handle shutdown properly so nothing leaks.
+	defer func() { _ = tp.Shutdown(ctx) }()
+	otel.SetTracerProvider(tp)
+
+	// Finally, set the tracer that can be used for this package.
+	tracer := tp.Tracer("api")
+	logger.Info("OpenTelemetry setup")
+
 	// Data Storage
 	db, err := postgres.NewStd(logger)
 	if err != nil {
@@ -114,7 +136,7 @@ func main() {
 	}()
 
 	// Sessions Storage
-	redisClient, err := pStorages.NewRedis(logger, context.Background())
+	redisClient, err := pStorages.NewRedis(logger, ctx)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -149,7 +171,7 @@ func main() {
 	var boardsRepo boards.Repository
 	var listsRepo lists.Repository
 	var cardsRepo cards.Repository
-	usersRepo = usersRepository.New(db, logger)
+	usersRepo = usersRepository.New(db, logger, tracer)
 	workspacesRepo = workspacesRepository.New(db, logger)
 	listsRepo = listsRepository.New(db, logger)
 	cardsRepo = cardsRepository.New(db, logger)
@@ -170,7 +192,7 @@ func main() {
 	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
 
 	// Use cases
-	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
+	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger, tracer)
 	usersUC := usersUsecase.New(usersRepo, imagesRepo)
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
 	boardsUC := boardsUsecase.New(boardsRepo, imagesRepo)
@@ -185,7 +207,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Delivery
-	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics)
+	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics, tracer)
 	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth, metrics)
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth, metrics)
 	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth, metrics)

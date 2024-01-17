@@ -1,6 +1,9 @@
 package users
 
-import "github.com/SlavaShagalov/my-trello-backend/internal/models"
+import (
+	"context"
+	"github.com/SlavaShagalov/my-trello-backend/internal/models"
+)
 
 type CreateParams struct {
 	Name           string
@@ -31,7 +34,7 @@ type Repository interface {
 
 	List() ([]models.User, error)
 	Get(id int) (models.User, error)
-	GetByUsername(username string) (models.User, error)
+	GetByUsername(ctx context.Context, username string) (models.User, error)
 
 	FullUpdate(params *FullUpdateParams) (models.User, error)
 	PartialUpdate(params *PartialUpdateParams) (models.User, error)

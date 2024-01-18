@@ -11,5 +11,7 @@
 - Allure
 - Prometheus, Node Exporter
 - Grafana
+- OpenTelemetry
+- Jaeger
 - GitHub Actions (CI)
 - OpenAPI, Swagger

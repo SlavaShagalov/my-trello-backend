@@ -6,8 +6,9 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"github.com/gorilla/mux"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -21,17 +22,14 @@ const (
 )
 
 type delivery struct {
-	uc     auth.Usecase
-	log    *zap.Logger
-	tracer trace.Tracer
+	uc  auth.Usecase
+	log *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware,
-	tracer trace.Tracer) {
+func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
-		uc:     uc,
-		log:    log,
-		tracer: tracer,
+		uc:  uc,
+		log: log,
 	}
 
 	mux.HandleFunc(signUpPath, metrics(del.signup)).Methods(http.MethodPost)
@@ -53,7 +51,7 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 //	@Failure		500
 //	@Router			/auth/signup [post]
 func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+signUpPath)
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+signUpPath)
 	defer span.End()
 
 	body, err := pHTTP.ReadBody(r, d.log)
@@ -66,6 +64,8 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 	err = request.UnmarshalJSON(body)
 	if err != nil {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
+		span.SetStatus(codes.Error, "UnmarshalJSON failed")
+		span.RecordError(err)
 		return
 	}
 
@@ -79,14 +79,19 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 	user, authToken, err := d.uc.SignUp(ctx, &params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
+		span.SetStatus(codes.Error, "SignUp failed")
+		span.RecordError(err)
 		return
 	}
 
 	sessionCookie := createSessionCookie(authToken)
 	http.SetCookie(w, sessionCookie)
+	span.AddEvent("Session cookie created")
 
 	response := newSignUpResponse(&user)
+	span.AddEvent("SignUp response created")
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
+	span.SetStatus(codes.Ok, "SignUp successfully")
 }
 
 // signin godoc
@@ -104,8 +109,10 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/auth/signin [post]
 func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
-	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+signInPath)
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+signInPath)
 	defer span.End()
+
+	opentel.Counter.Add(ctx, 1)
 
 	body, err := pHTTP.ReadBody(r, d.log)
 	if err != nil {
@@ -153,7 +160,7 @@ func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (d *delivery) logout(w http.ResponseWriter, r *http.Request) {
-	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+logoutPath)
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+logoutPath)
 	defer span.End()
 
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)

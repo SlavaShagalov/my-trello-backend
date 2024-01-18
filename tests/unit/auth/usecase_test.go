@@ -3,12 +3,11 @@ package auth
 import (
 	"context"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
-	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"testing"
 
@@ -30,7 +29,7 @@ type AuthUsecaseSuite struct {
 	suite.Suite
 	logger *zap.Logger
 	tp     *sdktrace.TracerProvider
-	tracer trace.Tracer
+	mp     *sdkmetric.MeterProvider
 	ctx    context.Context
 }
 
@@ -42,16 +41,13 @@ func (s *AuthUsecaseSuite) BeforeAll(t provider.T) {
 	s.logger = pkgZap.NewDevelopLogger()
 
 	// Set up OpenTelemetry.
-	exp, err := ot.NewOTLPExporter(s.ctx)
+	serviceName := "test"
+	serviceVersion := "0.1.0"
+	var err error
+	s.tp, s.mp, err = opentel.SetupOTelSDK(context.Background(), s.logger, serviceName, serviceVersion)
 	if err != nil {
-		s.logger.Error("Failed to initialize exporter", zap.Error(err))
+		t.Fatalf("OpenTel failed %v", err)
 	}
-
-	s.tp = ot.NewTraceProvider(exp)
-	otel.SetTracerProvider(s.tp)
-
-	s.tracer = s.tp.Tracer("test")
-	s.logger.Info("OpenTelemetry setup")
 }
 
 func (s *AuthUsecaseSuite) AfterAll(t provider.T) {
@@ -60,6 +56,7 @@ func (s *AuthUsecaseSuite) AfterAll(t provider.T) {
 	_ = s.logger.Sync()
 
 	_ = s.tp.Shutdown(s.ctx)
+	_ = s.mp.Shutdown(s.ctx)
 }
 
 func (s *AuthUsecaseSuite) BeforeEach(t provider.T) {
@@ -133,7 +130,7 @@ func (s *AuthUsecaseSuite) TestSignIn(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger, s.tracer)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
 			user, authToken, err := uc.SignIn(context.Background(), test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -220,7 +217,7 @@ func (s *AuthUsecaseSuite) TestSignUp(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger, s.tracer)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
 			user, authToken, err := uc.SignUp(context.Background(), test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -281,7 +278,7 @@ func (s *AuthUsecaseSuite) TestCheckAuth(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger, s.tracer)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger)
 			userID, err := uc.CheckAuth(context.Background(), test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
@@ -336,7 +333,7 @@ func (s *AuthUsecaseSuite) TestLogout(t provider.T) {
 			}
 
 			uc := authUsecase.New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl),
-				s.logger, s.tracer)
+				s.logger)
 			err := uc.Logout(context.Background(), test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)

@@ -4,15 +4,14 @@ import (
 	"context"
 	"database/sql"
 	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
-	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"log"
 	"os"
@@ -31,12 +30,12 @@ import (
 type UsersSuite struct {
 	suite.Suite
 	db      *sql.DB
-	logger  *zap.Logger
+	log     *zap.Logger
 	logfile *os.File
 	repo    pkgUsers.Repository
 	uc      pkgUsers.Usecase
 	tp      *sdktrace.TracerProvider
-	tracer  trace.Tracer
+	mp      *sdkmetric.MeterProvider
 	ctx     context.Context
 }
 
@@ -44,7 +43,7 @@ func (s *UsersSuite) SetupSuite() {
 	s.ctx = context.Background()
 
 	var err error
-	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/users.log")
+	s.log, s.logfile, err = pkgZap.NewTestLogger("/logs/users.log")
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -52,25 +51,21 @@ func (s *UsersSuite) SetupSuite() {
 
 	config.SetTestPostgresConfig()
 	config.SetDefaultValidationConfig()
-	s.db, err = pkgDb.NewStd(s.logger)
+	s.db, err = pkgDb.NewStd(s.log)
 	s.Require().NoError(err)
 
 	// Set up OpenTelemetry.
-	exp, err := ot.NewOTLPExporter(s.ctx)
+	serviceName := "test"
+	serviceVersion := "0.1.0"
+	s.tp, s.mp, err = opentel.SetupOTelSDK(context.Background(), s.log, serviceName, serviceVersion)
 	if err != nil {
-		s.logger.Error("Failed to initialize exporter", zap.Error(err))
+		return
 	}
-
-	s.tp = ot.NewTraceProvider(exp)
-	otel.SetTracerProvider(s.tp)
-
-	s.tracer = s.tp.Tracer("test")
-	s.logger.Info("OpenTelemetry setup")
 
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.repo = usersRepo.New(s.db, s.logger, s.tracer)
+	s.repo = usersRepo.New(s.db, s.log)
 	imgRepo := imgMocks.NewMockRepository(ctrl)
 	s.uc = usersUC.New(s.repo, imgRepo)
 }
@@ -78,9 +73,9 @@ func (s *UsersSuite) SetupSuite() {
 func (s *UsersSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
-	s.logger.Info("DB connection closed")
+	s.log.Info("DB connection closed")
 
-	err = s.logger.Sync()
+	err = s.log.Sync()
 	if err != nil {
 		log.Println(err)
 	}
@@ -90,6 +85,7 @@ func (s *UsersSuite) TearDownSuite() {
 	}
 
 	_ = s.tp.Shutdown(s.ctx)
+	_ = s.mp.Shutdown(s.ctx)
 }
 
 func (s *UsersSuite) TestList() {

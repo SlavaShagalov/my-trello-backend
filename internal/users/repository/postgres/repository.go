@@ -6,9 +6,9 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	pkgUsers "github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/pkg/errors"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -17,16 +17,14 @@ const (
 )
 
 type repository struct {
-	db     *sql.DB
-	log    *zap.Logger
-	tracer trace.Tracer
+	db  *sql.DB
+	log *zap.Logger
 }
 
-func New(db *sql.DB, log *zap.Logger, tracer trace.Tracer) pkgUsers.Repository {
+func New(db *sql.DB, log *zap.Logger) pkgUsers.Repository {
 	return &repository{
-		db:     db,
-		log:    log,
-		tracer: tracer,
+		db:  db,
+		log: log,
 	}
 }
 
@@ -36,7 +34,7 @@ const createCmd = `
 	RETURNING id, username, hashed_password, email, name, avatar, created_at, updated_at;`
 
 func (repo *repository) Create(ctx context.Context, params *pkgUsers.CreateParams) (models.User, error) {
-	_, span := repo.tracer.Start(ctx, componentName+" "+"Create")
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Create")
 	defer span.End()
 
 	row := repo.db.QueryRow(createCmd, params.Name, params.Username, params.Email, params.HashedPassword)
@@ -127,7 +125,7 @@ const getByUsernameCmd = `
 	WHERE username = $1;`
 
 func (repo *repository) GetByUsername(ctx context.Context, username string) (models.User, error) {
-	_, span := repo.tracer.Start(ctx, componentName+" "+"GetByUsername")
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"GetByUsername")
 	defer span.End()
 
 	row := repo.db.QueryRow(getByUsernameCmd, username)

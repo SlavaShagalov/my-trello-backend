@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
-	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/stretchr/testify/assert"
-	"go.opentelemetry.io/otel"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"log"
 	"os"
 	"testing"
@@ -16,9 +17,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
-
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 
@@ -42,7 +40,7 @@ type AuthSuite struct {
 	usersRepo users.Repository
 	uc        pkgAuth.Usecase
 	tp        *sdktrace.TracerProvider
-	tracer    trace.Tracer
+	mp        *sdkmetric.MeterProvider
 	ctx       context.Context
 }
 
@@ -66,21 +64,17 @@ func (s *AuthSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	// Set up OpenTelemetry.
-	exp, err := ot.NewOTLPExporter(s.ctx)
+	serviceName := "test"
+	serviceVersion := "0.1.0"
+	s.tp, s.mp, err = opentel.SetupOTelSDK(context.Background(), s.log, serviceName, serviceVersion)
 	if err != nil {
-		s.log.Error("Failed to initialize exporter", zap.Error(err))
+		return
 	}
 
-	s.tp = ot.NewTraceProvider(exp)
-	otel.SetTracerProvider(s.tp)
-
-	s.tracer = s.tp.Tracer("test")
-	s.log.Info("OpenTelemetry setup")
-
-	s.usersRepo = usersRepository.New(s.db, s.log, s.tracer)
-	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log, s.tracer)
-	hasher := pkgHasher.New(s.tracer)
-	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher, s.log, s.tracer)
+	s.usersRepo = usersRepository.New(s.db, s.log)
+	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log)
+	hasher := pkgHasher.New()
+	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher, s.log)
 }
 
 func (s *AuthSuite) TearDownSuite() {
@@ -102,6 +96,7 @@ func (s *AuthSuite) TearDownSuite() {
 	}
 
 	_ = s.tp.Shutdown(s.ctx)
+	_ = s.mp.Shutdown(s.ctx)
 }
 
 func (s *AuthSuite) TestSignIn() {

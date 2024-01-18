@@ -15,7 +15,7 @@ import (
 	pHasher "github.com/SlavaShagalov/my-trello-backend/internal/pkg/hasher/bcrypt"
 	pLog "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
 	pMetrics "github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
-	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	pStorages "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	sessionsRepository "github.com/SlavaShagalov/my-trello-backend/internal/sessions/repository/redis"
@@ -23,7 +23,6 @@ import (
 	usersRepository "github.com/SlavaShagalov/my-trello-backend/internal/users/repository/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/workspaces"
 	workspacesRepository "github.com/SlavaShagalov/my-trello-backend/internal/workspaces/repository/postgres"
-	"go.opentelemetry.io/otel"
 	"log"
 	"net/http"
 	"os"
@@ -104,23 +103,16 @@ func main() {
 	}()
 	logger.Info("API service starting...")
 
-	// Set up OpenTelemetry.
-	// For testing to print out traces to the console
-	//exp, err := ot.NewConsoleExporter()
-	exp, err := ot.NewOTLPExporter(ctx)
+	// ===== Set up OpenTelemetry =====
+	serviceName := viper.GetString(config.ServerName)
+	logger.Info("", zap.String("server_name", serviceName))
+	serviceVersion := "0.1.0"
+	tp, mp, err := opentel.SetupOTelSDK(context.Background(), logger, serviceName, serviceVersion)
 	if err != nil {
-		logger.Error("Failed to initialize exporter", zap.Error(err))
+		return
 	}
-
-	// Create a new tracer provider with a batch span processor and the given exporter.
-	tp := ot.NewTraceProvider(exp)
-	// Handle shutdown properly so nothing leaks.
 	defer func() { _ = tp.Shutdown(ctx) }()
-	otel.SetTracerProvider(tp)
-
-	// Finally, set the tracer that can be used for this package.
-	tracer := tp.Tracer("api")
-	logger.Info("OpenTelemetry setup")
+	defer func() { _ = mp.Shutdown(ctx) }()
 
 	// Data Storage
 	db, err := postgres.NewStd(logger)
@@ -163,7 +155,7 @@ func main() {
 	}
 
 	// Hasher
-	hasher := pHasher.New(tracer)
+	hasher := pHasher.New()
 
 	// Repo
 	var usersRepo users.Repository
@@ -171,7 +163,7 @@ func main() {
 	var boardsRepo boards.Repository
 	var listsRepo lists.Repository
 	var cardsRepo cards.Repository
-	usersRepo = usersRepository.New(db, logger, tracer)
+	usersRepo = usersRepository.New(db, logger)
 	workspacesRepo = workspacesRepository.New(db, logger)
 	listsRepo = listsRepository.New(db, logger)
 	cardsRepo = cardsRepository.New(db, logger)
@@ -189,10 +181,10 @@ func main() {
 	}
 
 	imagesRepo := imagesRepository.New(s3Client, logger)
-	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger, tracer)
+	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
 
 	// Use cases
-	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger, tracer)
+	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
 	usersUC := usersUsecase.New(usersRepo, imagesRepo)
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
 	boardsUC := boardsUsecase.New(boardsRepo, imagesRepo)
@@ -200,14 +192,14 @@ func main() {
 	cardsUC := cardsUsecase.New(cardsRepo)
 
 	// Middleware
-	checkAuth := mw.NewCheckAuth(authUC, logger, tracer)
-	accessLog := mw.NewAccessLog(logger, tracer)
-	metrics := mw.NewMetrics(mt, tracer)
+	checkAuth := mw.NewCheckAuth(authUC, logger, opentel.Tracer)
+	accessLog := mw.NewAccessLog(logger, opentel.Tracer)
+	metrics := mw.NewMetrics(mt, opentel.Tracer)
 
 	router := mux.NewRouter()
 
 	// Delivery
-	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics, tracer)
+	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics)
 	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth, metrics)
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth, metrics)
 	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth, metrics)

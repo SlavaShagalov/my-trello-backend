@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -19,23 +19,21 @@ const (
 )
 
 type repository struct {
-	rdb    *redis.Client
-	ctx    context.Context
-	log    *zap.Logger
-	tracer trace.Tracer
+	rdb *redis.Client
+	ctx context.Context
+	log *zap.Logger
 }
 
-func New(rdb *redis.Client, ctx context.Context, log *zap.Logger, tracer trace.Tracer) pkgSessions.Repository {
+func New(rdb *redis.Client, ctx context.Context, log *zap.Logger) pkgSessions.Repository {
 	return &repository{
-		rdb:    rdb,
-		ctx:    ctx,
-		log:    log,
-		tracer: tracer,
+		rdb: rdb,
+		ctx: ctx,
+		log: log,
 	}
 }
 
 func (repo *repository) Create(ctx context.Context, userID int) (string, error) {
-	_, span := repo.tracer.Start(ctx, componentName+" "+"Create")
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Create")
 	defer span.End()
 
 	authToken := strconv.Itoa(userID) + "$" + uuid.New().String()
@@ -52,7 +50,7 @@ func (repo *repository) Create(ctx context.Context, userID int) (string, error) 
 }
 
 func (repo *repository) Get(ctx context.Context, userID int, authToken string) (int, error) {
-	_, span := repo.tracer.Start(ctx, componentName+" "+"Get")
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Get")
 	defer span.End()
 
 	err := repo.rdb.HGet(repo.ctx, strconv.Itoa(userID), authToken).Err()
@@ -66,7 +64,7 @@ func (repo *repository) Get(ctx context.Context, userID int, authToken string) (
 }
 
 func (repo *repository) Delete(ctx context.Context, userID int, authToken string) error {
-	_, span := repo.tracer.Start(ctx, componentName+" "+"Delete")
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Delete")
 	defer span.End()
 
 	if err := repo.rdb.HGet(repo.ctx, strconv.Itoa(userID), authToken).Err(); err != nil {

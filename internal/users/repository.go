@@ -30,7 +30,7 @@ type PartialUpdateParams struct {
 }
 
 type Repository interface {
-	Create(params *CreateParams) (models.User, error)
+	Create(ctx context.Context, params *CreateParams) (models.User, error)
 
 	List() ([]models.User, error)
 	Get(id int) (models.User, error)

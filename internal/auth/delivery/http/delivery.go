@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+const (
+	authPrefix = "/auth"
+	signInPath = constants.ApiPrefix + authPrefix + "/signin"
+	signUpPath = constants.ApiPrefix + authPrefix + "/signup"
+	logoutPath = constants.ApiPrefix + authPrefix + "/logout"
+)
+
 type delivery struct {
 	uc     auth.Usecase
 	log    *zap.Logger
@@ -26,13 +33,6 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 		log:    log,
 		tracer: tracer,
 	}
-
-	const (
-		authPrefix = "/auth"
-		signInPath = constants.ApiPrefix + authPrefix + "/signin"
-		signUpPath = constants.ApiPrefix + authPrefix + "/signup"
-		logoutPath = constants.ApiPrefix + authPrefix + "/logout"
-	)
 
 	mux.HandleFunc(signUpPath, metrics(del.signup)).Methods(http.MethodPost)
 	mux.HandleFunc(signInPath, metrics(del.signin)).Methods(http.MethodPost)
@@ -53,6 +53,9 @@ func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAu
 //	@Failure		500
 //	@Router			/auth/signup [post]
 func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+signUpPath)
+	defer span.End()
+
 	body, err := pHTTP.ReadBody(r, d.log)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
@@ -73,7 +76,7 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 		Password: request.Password,
 	}
 
-	user, authToken, err := d.uc.SignUp(&params)
+	user, authToken, err := d.uc.SignUp(ctx, &params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -101,8 +104,7 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/auth/signin [post]
 func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
-	ctx, span := d.tracer.Start(r.Context(), "HTTP GET /signin")
-	time.Sleep(3 * time.Millisecond)
+	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+signInPath)
 	defer span.End()
 
 	body, err := pHTTP.ReadBody(r, d.log)
@@ -128,7 +130,6 @@ func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
 		pHTTP.HandleError(w, r, err)
 		return
 	}
-	time.Sleep(2 * time.Millisecond)
 
 	sessionCookie := createSessionCookie(authToken)
 	http.SetCookie(w, sessionCookie)
@@ -152,6 +153,9 @@ func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (d *delivery) logout(w http.ResponseWriter, r *http.Request) {
+	ctx, span := d.tracer.Start(r.Context(), r.Method+" "+logoutPath)
+	defer span.End()
+
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
@@ -163,7 +167,7 @@ func (d *delivery) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := d.uc.Logout(userID, authToken)
+	err := d.uc.Logout(ctx, userID, authToken)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return

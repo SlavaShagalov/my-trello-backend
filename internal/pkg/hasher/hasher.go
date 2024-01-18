@@ -1,6 +1,8 @@
 package hasher
 
+import "context"
+
 type Hasher interface {
-	GetHashedPassword(password string) (string, error)
-	CompareHashAndPassword(hashedPassword, password string) error
+	GetHashedPassword(ctx context.Context, password string) (string, error)
+	CompareHashAndPassword(ctx context.Context, hashedPassword, password string) error
 }

@@ -12,6 +12,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	componentName = "Users Repository"
+)
+
 type repository struct {
 	db     *sql.DB
 	log    *zap.Logger
@@ -31,7 +35,10 @@ const createCmd = `
 	VALUES ($1, $2, $3, $4)
 	RETURNING id, username, hashed_password, email, name, avatar, created_at, updated_at;`
 
-func (repo *repository) Create(params *pkgUsers.CreateParams) (models.User, error) {
+func (repo *repository) Create(ctx context.Context, params *pkgUsers.CreateParams) (models.User, error) {
+	_, span := repo.tracer.Start(ctx, componentName+" "+"Create")
+	defer span.End()
+
 	row := repo.db.QueryRow(createCmd, params.Name, params.Username, params.Email, params.HashedPassword)
 
 	var user models.User
@@ -120,7 +127,7 @@ const getByUsernameCmd = `
 	WHERE username = $1;`
 
 func (repo *repository) GetByUsername(ctx context.Context, username string) (models.User, error) {
-	_, span := repo.tracer.Start(ctx, "Users Repo GetByUsername")
+	_, span := repo.tracer.Start(ctx, componentName+" "+"GetByUsername")
 	defer span.End()
 
 	row := repo.db.QueryRow(getByUsernameCmd, username)

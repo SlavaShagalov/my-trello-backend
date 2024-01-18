@@ -1,13 +1,18 @@
 package integration
 
 import (
+	"context"
 	"database/sql"
 	imgMocks "github.com/SlavaShagalov/my-trello-backend/internal/images/mocks"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
 	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"log"
 	"os"
@@ -30,9 +35,14 @@ type UsersSuite struct {
 	logfile *os.File
 	repo    pkgUsers.Repository
 	uc      pkgUsers.Usecase
+	tp      *sdktrace.TracerProvider
+	tracer  trace.Tracer
+	ctx     context.Context
 }
 
 func (s *UsersSuite) SetupSuite() {
+	s.ctx = context.Background()
+
 	var err error
 	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/users.log")
 	if err != nil {
@@ -45,10 +55,22 @@ func (s *UsersSuite) SetupSuite() {
 	s.db, err = pkgDb.NewStd(s.logger)
 	s.Require().NoError(err)
 
+	// Set up OpenTelemetry.
+	exp, err := ot.NewOTLPExporter(s.ctx)
+	if err != nil {
+		s.logger.Error("Failed to initialize exporter", zap.Error(err))
+	}
+
+	s.tp = ot.NewTraceProvider(exp)
+	otel.SetTracerProvider(s.tp)
+
+	s.tracer = s.tp.Tracer("test")
+	s.logger.Info("OpenTelemetry setup")
+
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	s.repo = usersRepo.New(s.db, s.logger)
+	s.repo = usersRepo.New(s.db, s.logger, s.tracer)
 	imgRepo := imgMocks.NewMockRepository(ctrl)
 	s.uc = usersUC.New(s.repo, imgRepo)
 }
@@ -56,8 +78,18 @@ func (s *UsersSuite) SetupSuite() {
 func (s *UsersSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
+	s.logger.Info("DB connection closed")
 
-	_ = s.logger.Sync()
+	err = s.logger.Sync()
+	if err != nil {
+		log.Println(err)
+	}
+	err = s.logfile.Close()
+	if err != nil {
+		log.Println(err)
+	}
+
+	_ = s.tp.Shutdown(s.ctx)
 }
 
 func (s *UsersSuite) TestList() {
@@ -182,7 +214,7 @@ func (s *UsersSuite) TestFullUpdate() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			tempUser, err := s.repo.Create(&pkgUsers.CreateParams{
+			tempUser, err := s.repo.Create(context.Background(), &pkgUsers.CreateParams{
 				Name:           "Temp User",
 				Username:       "temp_user",
 				Email:          "temp_user@vk.com",
@@ -280,7 +312,7 @@ func (s *UsersSuite) TestPartialUpdate() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			tempUser, err := s.repo.Create(&pkgUsers.CreateParams{
+			tempUser, err := s.repo.Create(context.Background(), &pkgUsers.CreateParams{
 				Name:           "Temp User",
 				Username:       "temp_user",
 				Email:          "temp_user@vk.com",
@@ -322,7 +354,7 @@ func (s *UsersSuite) TestDelete() {
 	tests := map[string]testCase{
 		"normal": {
 			setupUser: func() (models.User, error) {
-				return s.repo.Create(&pkgUsers.CreateParams{
+				return s.repo.Create(context.Background(), &pkgUsers.CreateParams{
 					Name:           "Temp User",
 					Username:       "temp_user",
 					Email:          "temp_user@vk.com",

@@ -36,23 +36,6 @@ down:
 	sudo rm -rf ./postgres/primary/archive
 	sudo rm -rf ./postgres/standby/pgdata
 
-.PHONY: jaeger
-jaeger:
-	docker run --name jaeger \
-	-e COLLECTOR_OTLP_ENABLED=true \
-	-e OTEL_EXPORTER_OTLP_ENDPOINT=http://0.0.0.0:4318/v1/traces \
-	-p 16686:16686 \
-	-p 4317:4317 \
-	-p 4318:4318 \
-	jaegertracing/all-in-one:1.35
-
-#	docker run --rm --name jaeger \
-#	-p 16686:16686 \
-#	-p 4318:4318 \
-#	-e OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4318" \
-#	jaegertracing/example-hotrod:1.53 \
-#	all --otel-exporter=otlp
-
 .PHONY: api-up
 api-up:
 	docker compose -f docker-compose.yml up -d --build db sessions-db api-main balancer
@@ -81,6 +64,11 @@ name = main
 logs-api:
 	tail -f -n +1 "cmd/api/logs/$(name).log" | batcat --paging=never --language=log
 
+suite = auth
+.PHONY: logs-test
+logs-test:
+	tail -f -n +1 "tests/logs/$(suite).log" | batcat --paging=never --language=log
+
 # ===== GENERATORS =====
 
 .PHONY: mocks
@@ -103,10 +91,14 @@ format:
 
 # ===== TESTS =====
 
-.PHONY: run-test-containers
-run-test-containers:
+.PHONY: test-up
+test-up:
 	#docker compose -f docker-compose.yml up -d --build db sessions-storage api-main balancer test
-	docker compose -f docker-compose.yml up -d --build test-db test-sessions-db test-api test
+	docker compose -f docker-compose.yml up -d --build test-db test-sessions-db test-api test jaeger
+
+.PHONY: test-stop
+test-stop:
+	docker compose -f docker-compose.yml stop test-db test-sessions-db test-api test jaeger
 
 .PHONY: unit-test
 unit-test:
@@ -131,8 +123,3 @@ unit-cover:
 .PHONY: integration-cover
 integration-cover:
 	./scripts/db/run_integration_cover.sh
-
-suite = auth
-.PHONY: test-logs
-test-logs:
-	tail -f -n +1 "tests/logs/$(suite).log" | batcat --paging=never --language=log

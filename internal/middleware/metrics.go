@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/metrics"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,9 +11,13 @@ import (
 	"github.com/urfave/negroni"
 )
 
-func NewMetrics(mt metrics.PrometheusMetrics) func(h http.HandlerFunc) http.HandlerFunc {
+func NewMetrics(mt metrics.PrometheusMetrics, tracer trace.Tracer) func(h http.HandlerFunc) http.HandlerFunc {
 	return func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			ctx, span := tracer.Start(r.Context(), "Metrics Middleware")
+			defer span.End()
+			r = r.WithContext(ctx)
+
 			wWithCode := negroni.NewResponseWriter(w)
 
 			begin := time.Now()

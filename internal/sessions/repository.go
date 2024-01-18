@@ -1,7 +1,9 @@
 package sessions
 
+import "context"
+
 type Repository interface {
-	Create(userID int) (string, error)
-	Get(userID int, authToken string) (int, error)
-	Delete(userID int, authToken string) error
+	Create(ctx context.Context, userID int) (string, error)
+	Get(ctx context.Context, userID int, authToken string) (int, error)
+	Delete(ctx context.Context, userID int, authToken string) error
 }

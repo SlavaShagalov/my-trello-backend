@@ -163,7 +163,7 @@ func main() {
 	}
 
 	// Hasher
-	hasher := pHasher.New()
+	hasher := pHasher.New(tracer)
 
 	// Repo
 	var usersRepo users.Repository
@@ -189,7 +189,7 @@ func main() {
 	}
 
 	imagesRepo := imagesRepository.New(s3Client, logger)
-	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
+	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger, tracer)
 
 	// Use cases
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger, tracer)
@@ -200,9 +200,9 @@ func main() {
 	cardsUC := cardsUsecase.New(cardsRepo)
 
 	// Middleware
-	checkAuth := mw.NewCheckAuth(authUC, logger)
-	accessLog := mw.NewAccessLog(logger)
-	metrics := mw.NewMetrics(mt)
+	checkAuth := mw.NewCheckAuth(authUC, logger, tracer)
+	accessLog := mw.NewAccessLog(logger, tracer)
+	metrics := mw.NewMetrics(mt, tracer)
 
 	router := mux.NewRouter()
 

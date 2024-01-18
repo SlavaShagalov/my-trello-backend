@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,30 +35,30 @@ func (m *MockHasher) EXPECT() *MockHasherMockRecorder {
 }
 
 // CompareHashAndPassword mocks base method.
-func (m *MockHasher) CompareHashAndPassword(hashedPassword, password string) error {
+func (m *MockHasher) CompareHashAndPassword(ctx context.Context, hashedPassword, password string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CompareHashAndPassword", hashedPassword, password)
+	ret := m.ctrl.Call(m, "CompareHashAndPassword", ctx, hashedPassword, password)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CompareHashAndPassword indicates an expected call of CompareHashAndPassword.
-func (mr *MockHasherMockRecorder) CompareHashAndPassword(hashedPassword, password interface{}) *gomock.Call {
+func (mr *MockHasherMockRecorder) CompareHashAndPassword(ctx, hashedPassword, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompareHashAndPassword", reflect.TypeOf((*MockHasher)(nil).CompareHashAndPassword), hashedPassword, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompareHashAndPassword", reflect.TypeOf((*MockHasher)(nil).CompareHashAndPassword), ctx, hashedPassword, password)
 }
 
 // GetHashedPassword mocks base method.
-func (m *MockHasher) GetHashedPassword(password string) (string, error) {
+func (m *MockHasher) GetHashedPassword(ctx context.Context, password string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetHashedPassword", password)
+	ret := m.ctrl.Call(m, "GetHashedPassword", ctx, password)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetHashedPassword indicates an expected call of GetHashedPassword.
-func (mr *MockHasherMockRecorder) GetHashedPassword(password interface{}) *gomock.Call {
+func (mr *MockHasherMockRecorder) GetHashedPassword(ctx, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHashedPassword", reflect.TypeOf((*MockHasher)(nil).GetHashedPassword), password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHashedPassword", reflect.TypeOf((*MockHasher)(nil).GetHashedPassword), ctx, password)
 }

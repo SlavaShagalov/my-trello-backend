@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -13,17 +14,30 @@ import (
 	pkgSessions "github.com/SlavaShagalov/my-trello-backend/internal/sessions"
 )
 
+const (
+	componentName = "Sessions Repository"
+)
+
 type repository struct {
-	rdb *redis.Client
-	ctx context.Context
-	log *zap.Logger
+	rdb    *redis.Client
+	ctx    context.Context
+	log    *zap.Logger
+	tracer trace.Tracer
 }
 
-func New(rdb *redis.Client, ctx context.Context, log *zap.Logger) pkgSessions.Repository {
-	return &repository{rdb: rdb, ctx: ctx, log: log}
+func New(rdb *redis.Client, ctx context.Context, log *zap.Logger, tracer trace.Tracer) pkgSessions.Repository {
+	return &repository{
+		rdb:    rdb,
+		ctx:    ctx,
+		log:    log,
+		tracer: tracer,
+	}
 }
 
-func (repo *repository) Create(userID int) (string, error) {
+func (repo *repository) Create(ctx context.Context, userID int) (string, error) {
+	_, span := repo.tracer.Start(ctx, componentName+" "+"Create")
+	defer span.End()
+
 	authToken := strconv.Itoa(userID) + "$" + uuid.New().String()
 
 	err := repo.rdb.HSet(repo.ctx, strconv.Itoa(userID), authToken, []byte{}).Err()
@@ -37,7 +51,10 @@ func (repo *repository) Create(userID int) (string, error) {
 	return authToken, nil
 }
 
-func (repo *repository) Get(userID int, authToken string) (int, error) {
+func (repo *repository) Get(ctx context.Context, userID int, authToken string) (int, error) {
+	_, span := repo.tracer.Start(ctx, componentName+" "+"Get")
+	defer span.End()
+
 	err := repo.rdb.HGet(repo.ctx, strconv.Itoa(userID), authToken).Err()
 	if err != nil {
 		repo.log.Info("Failed to get session", zap.Error(err), zap.Int("user_id", userID),
@@ -48,7 +65,10 @@ func (repo *repository) Get(userID int, authToken string) (int, error) {
 	return userID, nil
 }
 
-func (repo *repository) Delete(userID int, authToken string) error {
+func (repo *repository) Delete(ctx context.Context, userID int, authToken string) error {
+	_, span := repo.tracer.Start(ctx, componentName+" "+"Delete")
+	defer span.End()
+
 	if err := repo.rdb.HGet(repo.ctx, strconv.Itoa(userID), authToken).Err(); err != nil {
 		repo.log.Info("Failed to delete session", zap.Error(err), zap.Int("user_id", userID),
 			zap.String("token", authToken))

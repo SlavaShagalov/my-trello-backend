@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
 	"log"
 	"os"
 	"testing"
@@ -14,6 +16,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 
@@ -36,9 +41,14 @@ type AuthSuite struct {
 	logfile   *os.File
 	usersRepo users.Repository
 	uc        pkgAuth.Usecase
+	tp        *sdktrace.TracerProvider
+	tracer    trace.Tracer
+	ctx       context.Context
 }
 
 func (s *AuthSuite) SetupSuite() {
+	s.ctx = context.Background()
+
 	var err error
 	s.log, s.logfile, err = pkgZap.NewTestLogger("/logs/auth.log")
 	if err != nil {
@@ -55,10 +65,22 @@ func (s *AuthSuite) SetupSuite() {
 	s.rdb, err = pkgDb.NewRedis(s.log, ctx)
 	s.Require().NoError(err)
 
-	s.usersRepo = usersRepository.New(s.db, s.log)
-	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log)
-	hasher := pkgHasher.New()
-	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher, s.log)
+	// Set up OpenTelemetry.
+	exp, err := ot.NewOTLPExporter(s.ctx)
+	if err != nil {
+		s.log.Error("Failed to initialize exporter", zap.Error(err))
+	}
+
+	s.tp = ot.NewTraceProvider(exp)
+	otel.SetTracerProvider(s.tp)
+
+	s.tracer = s.tp.Tracer("test")
+	s.log.Info("OpenTelemetry setup")
+
+	s.usersRepo = usersRepository.New(s.db, s.log, s.tracer)
+	sessionsRepo := sessionsRepository.New(s.rdb, ctx, s.log, s.tracer)
+	hasher := pkgHasher.New(s.tracer)
+	s.uc = authUC.New(s.usersRepo, sessionsRepo, hasher, s.log, s.tracer)
 }
 
 func (s *AuthSuite) TearDownSuite() {
@@ -78,6 +100,8 @@ func (s *AuthSuite) TearDownSuite() {
 	if err != nil {
 		log.Println(err)
 	}
+
+	_ = s.tp.Shutdown(s.ctx)
 }
 
 func (s *AuthSuite) TestSignIn() {
@@ -122,7 +146,7 @@ func (s *AuthSuite) TestSignIn() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			user, authToken, err := s.uc.SignIn(test.params)
+			user, authToken, err := s.uc.SignIn(context.Background(), test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			assert.Equal(s.T(), test.user.ID, user.ID, "incorrect user ID")
@@ -134,10 +158,10 @@ func (s *AuthSuite) TestSignIn() {
 			if err == nil {
 				assert.NotEmpty(s.T(), authToken, "incorrect AuthToken")
 
-				_, err = s.uc.CheckAuth(user.ID, authToken)
+				_, err = s.uc.CheckAuth(context.Background(), user.ID, authToken)
 				assert.NoError(s.T(), err, "unexpected unauthorized")
 
-				err = s.uc.Logout(user.ID, authToken)
+				err = s.uc.Logout(context.Background(), user.ID, authToken)
 				assert.NoError(s.T(), err, "failed to logout user")
 			}
 		})
@@ -180,7 +204,7 @@ func (s *AuthSuite) TestSignUp() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			user, authToken, err := s.uc.SignUp(test.params)
+			user, authToken, err := s.uc.SignUp(context.Background(), test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			assert.Equal(s.T(), test.user.Username, user.Username, "incorrect Username")
@@ -190,10 +214,10 @@ func (s *AuthSuite) TestSignUp() {
 			if err == nil {
 				assert.NotEmpty(s.T(), authToken, "incorrect AuthToken")
 
-				_, err = s.uc.CheckAuth(user.ID, authToken)
+				_, err = s.uc.CheckAuth(context.Background(), user.ID, authToken)
 				assert.NoError(s.T(), err, "unexpected unauthorized")
 
-				err = s.uc.Logout(user.ID, authToken)
+				err = s.uc.Logout(context.Background(), user.ID, authToken)
 				assert.NoError(s.T(), err, "failed to logout user")
 
 				err = s.usersRepo.Delete(user.ID)
@@ -210,8 +234,10 @@ func (s *AuthSuite) TestCheckAuth() {
 		err       error
 	}
 
+	ctx := context.Background()
+
 	// prepare session for tests
-	user, validAuthToken, err := s.uc.SignIn(&pkgAuth.SignInParams{
+	user, validAuthToken, err := s.uc.SignIn(ctx, &pkgAuth.SignInParams{
 		Username: "slava",
 		Password: "12345678",
 	})
@@ -237,7 +263,7 @@ func (s *AuthSuite) TestCheckAuth() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			userID, err := s.uc.CheckAuth(test.userID, test.authToken)
+			userID, err := s.uc.CheckAuth(ctx, test.userID, test.authToken)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
@@ -247,7 +273,7 @@ func (s *AuthSuite) TestCheckAuth() {
 	}
 
 	// delete prepared session
-	err = s.uc.Logout(user.ID, validAuthToken)
+	err = s.uc.Logout(ctx, user.ID, validAuthToken)
 	assert.NoError(s.T(), err, "failed to logout user")
 }
 
@@ -259,7 +285,7 @@ func (s *AuthSuite) TestLogout() {
 	}
 
 	// prepare session for tests
-	user, validAuthToken, err := s.uc.SignIn(&pkgAuth.SignInParams{
+	user, validAuthToken, err := s.uc.SignIn(context.Background(), &pkgAuth.SignInParams{
 		Username: "slava",
 		Password: "12345678",
 	})
@@ -285,11 +311,11 @@ func (s *AuthSuite) TestLogout() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			err = s.uc.Logout(test.userID, test.authToken)
+			err = s.uc.Logout(context.Background(), test.userID, test.authToken)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
-				_, err = s.uc.CheckAuth(user.ID, test.authToken)
+				_, err = s.uc.CheckAuth(context.Background(), user.ID, test.authToken)
 				assert.ErrorIs(s.T(), err, pkgErrors.ErrSessionNotFound, "unexpected error")
 			}
 		})

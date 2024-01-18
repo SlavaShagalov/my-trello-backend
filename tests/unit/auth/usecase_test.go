@@ -1,9 +1,14 @@
 package auth
 
 import (
+	"context"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/ot"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"testing"
 
@@ -24,18 +29,37 @@ import (
 type AuthUsecaseSuite struct {
 	suite.Suite
 	logger *zap.Logger
+	tp     *sdktrace.TracerProvider
+	tracer trace.Tracer
+	ctx    context.Context
 }
 
 func (s *AuthUsecaseSuite) BeforeAll(t provider.T) {
 	t.WithNewStep("SetupSuite step", func(ctx provider.StepCtx) {})
 
+	s.ctx = context.Background()
+
 	s.logger = pkgZap.NewDevelopLogger()
+
+	// Set up OpenTelemetry.
+	exp, err := ot.NewOTLPExporter(s.ctx)
+	if err != nil {
+		s.logger.Error("Failed to initialize exporter", zap.Error(err))
+	}
+
+	s.tp = ot.NewTraceProvider(exp)
+	otel.SetTracerProvider(s.tp)
+
+	s.tracer = s.tp.Tracer("test")
+	s.logger.Info("OpenTelemetry setup")
 }
 
 func (s *AuthUsecaseSuite) AfterAll(t provider.T) {
 	t.WithNewStep("TearDownSuite step", func(ctx provider.StepCtx) {})
 
 	_ = s.logger.Sync()
+
+	_ = s.tp.Shutdown(s.ctx)
 }
 
 func (s *AuthUsecaseSuite) BeforeEach(t provider.T) {
@@ -68,9 +92,9 @@ func (s *AuthUsecaseSuite) TestSignIn(t provider.T) {
 		"normal": {
 			prepare: func(f *fields) {
 				gomock.InOrder(
-					f.usersRepo.EXPECT().GetByUsername(f.params.Username).Return(*f.user, nil),
-					f.hasher.EXPECT().CompareHashAndPassword(f.user.Password, f.params.Password).Return(nil),
-					f.sessionsRepo.EXPECT().Create(f.user.ID).Return(f.authToken, nil),
+					f.usersRepo.EXPECT().GetByUsername(gomock.Any(), f.params.Username).Return(*f.user, nil),
+					f.hasher.EXPECT().CompareHashAndPassword(gomock.Any(), f.user.Password, f.params.Password).Return(nil),
+					f.sessionsRepo.EXPECT().Create(gomock.Any(), f.user.ID).Return(f.authToken, nil),
 				)
 			},
 			params: &pkgAuth.SignInParams{
@@ -109,8 +133,8 @@ func (s *AuthUsecaseSuite) TestSignIn(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
-			user, authToken, err := uc.SignIn(test.params)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger, s.tracer)
+			user, authToken, err := uc.SignIn(context.Background(), test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
@@ -146,16 +170,16 @@ func (s *AuthUsecaseSuite) TestSignUp(t provider.T) {
 		"normal": {
 			prepare: func(f *fields) {
 				gomock.InOrder(
-					f.usersRepo.EXPECT().GetByUsername(f.params.Username).
+					f.usersRepo.EXPECT().GetByUsername(gomock.Any(), f.params.Username).
 						Return(models.User{}, pkgErrors.ErrUserNotFound),
-					f.hasher.EXPECT().GetHashedPassword(f.params.Password).Return(f.user.Password, nil),
-					f.usersRepo.EXPECT().Create(&users.CreateParams{
+					f.hasher.EXPECT().GetHashedPassword(gomock.Any(), f.params.Password).Return(f.user.Password, nil),
+					f.usersRepo.EXPECT().Create(gomock.Any(), &users.CreateParams{
 						Name:           f.params.Name,
 						Username:       f.params.Username,
 						Email:          f.params.Email,
 						HashedPassword: f.user.Password,
 					}).Return(*f.user, nil),
-					f.sessionsRepo.EXPECT().Create(f.user.ID).Return(f.authToken, nil),
+					f.sessionsRepo.EXPECT().Create(gomock.Any(), f.user.ID).Return(f.authToken, nil),
 				)
 			},
 			params: &pkgAuth.SignUpParams{
@@ -196,8 +220,8 @@ func (s *AuthUsecaseSuite) TestSignUp(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger)
-			user, authToken, err := uc.SignUp(test.params)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, f.hasher, s.logger, s.tracer)
+			user, authToken, err := uc.SignUp(context.Background(), test.params)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
@@ -230,7 +254,7 @@ func (s *AuthUsecaseSuite) TestCheckAuth(t provider.T) {
 		"normal": {
 			prepare: func(f *fields) {
 				gomock.InOrder(
-					f.sessionsRepo.EXPECT().Get(f.userID, f.authToken).Return(f.userID, nil),
+					f.sessionsRepo.EXPECT().Get(gomock.Any(), f.userID, f.authToken).Return(f.userID, nil),
 				)
 			},
 			userID:    21,
@@ -257,8 +281,8 @@ func (s *AuthUsecaseSuite) TestCheckAuth(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger)
-			userID, err := uc.CheckAuth(test.userID, test.authToken)
+			uc := authUsecase.New(f.usersRepo, f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger, s.tracer)
+			userID, err := uc.CheckAuth(context.Background(), test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}
@@ -286,7 +310,7 @@ func (s *AuthUsecaseSuite) TestLogout(t provider.T) {
 	tests := map[string]testCase{
 		"normal": {
 			prepare: func(f *fields) {
-				f.sessionsRepo.EXPECT().Delete(f.userID, f.authToken).Return(nil)
+				f.sessionsRepo.EXPECT().Delete(gomock.Any(), f.userID, f.authToken).Return(nil)
 			},
 			userID:    21,
 			authToken: "auth_token",
@@ -311,8 +335,9 @@ func (s *AuthUsecaseSuite) TestLogout(t provider.T) {
 				test.prepare(&f)
 			}
 
-			uc := authUsecase.New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl), s.logger)
-			err := uc.Logout(test.userID, test.authToken)
+			uc := authUsecase.New(usersMocks.NewMockRepository(ctrl), f.sessionsRepo, hasherMocks.NewMockHasher(ctrl),
+				s.logger, s.tracer)
+			err := uc.Logout(context.Background(), test.userID, test.authToken)
 			if !errors.Is(err, test.err) {
 				t.Errorf("\nExpected: %s\nGot: %s", test.err, err)
 			}

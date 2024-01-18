@@ -11,7 +11,10 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"time"
+)
+
+const (
+	componentName = "Auth Usecase"
 )
 
 type usecase struct {
@@ -22,7 +25,8 @@ type usecase struct {
 	tracer       trace.Tracer
 }
 
-func New(usersRepo users.Repository, sessionsRepo sessions.Repository, hasher pkgHasher.Hasher, log *zap.Logger, tracer trace.Tracer) auth.Usecase {
+func New(usersRepo users.Repository, sessionsRepo sessions.Repository, hasher pkgHasher.Hasher, log *zap.Logger,
+	tracer trace.Tracer) auth.Usecase {
 	return &usecase{
 		usersRepo:    usersRepo,
 		sessionsRepo: sessionsRepo,
@@ -33,22 +37,19 @@ func New(usersRepo users.Repository, sessionsRepo sessions.Repository, hasher pk
 }
 
 func (uc *usecase) SignIn(ctx context.Context, params *auth.SignInParams) (models.User, string, error) {
-	uc.log.Debug("HERE")
-	ctx, span := uc.tracer.Start(ctx, "Usecase SignIn")
-	time.Sleep(3 * time.Millisecond)
+	ctx, span := uc.tracer.Start(ctx, componentName+" "+"SignIn")
 	defer span.End()
 
 	user, err := uc.usersRepo.GetByUsername(ctx, params.Username)
 	if err != nil {
 		return models.User{}, "", err
 	}
-	time.Sleep(1 * time.Millisecond)
 
-	if err = uc.hasher.CompareHashAndPassword(user.Password, params.Password); err != nil {
+	if err = uc.hasher.CompareHashAndPassword(ctx, user.Password, params.Password); err != nil {
 		return models.User{}, "", errors.Wrap(pkgErrors.ErrWrongLoginOrPassword, err.Error())
 	}
 
-	authToken, err := uc.sessionsRepo.Create(user.ID)
+	authToken, err := uc.sessionsRepo.Create(ctx, user.ID)
 	if err != nil {
 		return models.User{}, "", err
 	}
@@ -57,8 +58,11 @@ func (uc *usecase) SignIn(ctx context.Context, params *auth.SignInParams) (model
 	return user, authToken, nil
 }
 
-func (uc *usecase) SignUp(params *auth.SignUpParams) (models.User, string, error) {
-	_, err := uc.usersRepo.GetByUsername(context.TODO(), params.Username)
+func (uc *usecase) SignUp(ctx context.Context, params *auth.SignUpParams) (models.User, string, error) {
+	ctx, span := uc.tracer.Start(ctx, componentName+" "+"SignUp")
+	defer span.End()
+
+	_, err := uc.usersRepo.GetByUsername(ctx, params.Username)
 	if !errors.Is(err, pkgErrors.ErrUserNotFound) {
 		if err != nil {
 			return models.User{}, "", err
@@ -66,7 +70,7 @@ func (uc *usecase) SignUp(params *auth.SignUpParams) (models.User, string, error
 		return models.User{}, "", pkgErrors.ErrUserAlreadyExists
 	}
 
-	hashedPassword, err := uc.hasher.GetHashedPassword(params.Password)
+	hashedPassword, err := uc.hasher.GetHashedPassword(ctx, params.Password)
 	if err != nil {
 		return models.User{}, "", errors.Wrap(pkgErrors.ErrGetHashedPassword, err.Error())
 	}
@@ -77,12 +81,12 @@ func (uc *usecase) SignUp(params *auth.SignUpParams) (models.User, string, error
 		Email:          params.Email,
 		HashedPassword: hashedPassword,
 	}
-	user, err := uc.usersRepo.Create(repParams)
+	user, err := uc.usersRepo.Create(ctx, repParams)
 	if err != nil {
 		return models.User{}, "", err
 	}
 
-	authToken, err := uc.sessionsRepo.Create(user.ID)
+	authToken, err := uc.sessionsRepo.Create(ctx, user.ID)
 	if err != nil {
 		return models.User{}, "", err
 	}
@@ -91,12 +95,18 @@ func (uc *usecase) SignUp(params *auth.SignUpParams) (models.User, string, error
 	return user, authToken, nil
 }
 
-func (uc *usecase) CheckAuth(userID int, authToken string) (int, error) {
-	return uc.sessionsRepo.Get(userID, authToken)
+func (uc *usecase) CheckAuth(ctx context.Context, userID int, authToken string) (int, error) {
+	ctx, span := uc.tracer.Start(ctx, componentName+" "+"CheckAuth")
+	defer span.End()
+
+	return uc.sessionsRepo.Get(ctx, userID, authToken)
 }
 
-func (uc *usecase) Logout(userID int, authToken string) error {
-	err := uc.sessionsRepo.Delete(userID, authToken)
+func (uc *usecase) Logout(ctx context.Context, userID int, authToken string) error {
+	ctx, span := uc.tracer.Start(ctx, componentName+" "+"Logout")
+	defer span.End()
+
+	err := uc.sessionsRepo.Delete(ctx, userID, authToken)
 	if err != nil {
 		return err
 	}

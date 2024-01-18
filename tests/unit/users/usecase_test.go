@@ -216,7 +216,7 @@ func (s *UsersUsecaseSuite) TestGetByUsername(t provider.T) {
 	tests := map[string]testCase{
 		"normal": {
 			prepare: func(f *fields) {
-				f.repo.EXPECT().GetByUsername(f.username).Return(*f.user, nil)
+				f.repo.EXPECT().GetByUsername(gomock.Any(), f.username).Return(*f.user, nil)
 			},
 			username: "slava",
 			user: s.uBuilder.
@@ -230,7 +230,7 @@ func (s *UsersUsecaseSuite) TestGetByUsername(t provider.T) {
 		},
 		"storages error": {
 			prepare: func(f *fields) {
-				f.repo.EXPECT().GetByUsername(f.username).Return(*f.user, pkgErrors.ErrDb)
+				f.repo.EXPECT().GetByUsername(gomock.Any(), f.username).Return(*f.user, pkgErrors.ErrDb)
 			},
 			username: "slava",
 			user:     s.uBuilder.Build(),
@@ -282,7 +282,7 @@ func (s *UsersUsecaseSuite) TestFullUpdate(t provider.T) {
 		"normal": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().FullUpdate(f.params).Return(*f.user, nil)
-				f.repo.EXPECT().GetByUsername(f.params.Username).Return(models.User{}, pkgErrors.ErrUserNotFound)
+				f.repo.EXPECT().GetByUsername(gomock.Any(), f.params.Username).Return(models.User{}, pkgErrors.ErrUserNotFound)
 			},
 			params: &pkgUsers.FullUpdateParams{
 				ID:       21,
@@ -345,7 +345,7 @@ func (s *UsersUsecaseSuite) TestPartialUpdate(t provider.T) {
 		"normal": {
 			prepare: func(f *fields) {
 				f.repo.EXPECT().PartialUpdate(f.params).Return(*f.user, nil)
-				f.repo.EXPECT().GetByUsername(f.params.Username).Return(models.User{}, pkgErrors.ErrUserNotFound)
+				f.repo.EXPECT().GetByUsername(gomock.Any(), f.params.Username).Return(models.User{}, pkgErrors.ErrUserNotFound)
 			},
 			params: &pkgUsers.PartialUpdateParams{
 				ID:             21,

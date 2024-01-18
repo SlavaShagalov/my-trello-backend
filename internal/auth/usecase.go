@@ -19,7 +19,7 @@ type SignUpParams struct {
 
 type Usecase interface {
 	SignIn(ctx context.Context, params *SignInParams) (models.User, string, error)
-	SignUp(params *SignUpParams) (models.User, string, error)
-	CheckAuth(userID int, authToken string) (int, error)
-	Logout(userID int, authToken string) error
+	SignUp(ctx context.Context, params *SignUpParams) (models.User, string, error)
+	CheckAuth(ctx context.Context, userID int, authToken string) (int, error)
+	Logout(ctx context.Context, userID int, authToken string) error
 }

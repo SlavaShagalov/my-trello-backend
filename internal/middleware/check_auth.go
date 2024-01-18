@@ -6,15 +6,20 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func NewCheckAuth(uc auth.Usecase, log *zap.Logger) func(h http.HandlerFunc) http.HandlerFunc {
+func NewCheckAuth(uc auth.Usecase, log *zap.Logger, tracer trace.Tracer) func(h http.HandlerFunc) http.HandlerFunc {
 	return func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			ctx, span := tracer.Start(r.Context(), "CheckAuth Middleware")
+			defer span.End()
+			r = r.WithContext(ctx)
+
 			sessionCookie, err := r.Cookie(constants.SessionName)
 			if err != nil {
 				log.Debug("Failed to get session cookie", zap.Error(err))
@@ -28,13 +33,13 @@ func NewCheckAuth(uc auth.Usecase, log *zap.Logger) func(h http.HandlerFunc) htt
 				return
 			}
 
-			userID, err := uc.CheckAuth(id, authToken)
+			userID, err := uc.CheckAuth(r.Context(), id, authToken)
 			if err != nil {
 				pHTTP.HandleError(w, r, err)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ContextUserID, userID)
+			ctx = context.WithValue(ctx, ContextUserID, userID)
 			ctx = context.WithValue(ctx, ContextAuthToken, authToken)
 
 			h(w, r.WithContext(ctx))

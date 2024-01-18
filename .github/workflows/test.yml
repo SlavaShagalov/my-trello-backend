@@ -8,8 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.1
 
-      - name: Up containers
-        run: make run-test-containers
+      - name: Up test containers
+        run: make test-up
 
       - name: Run unit tests
         run: docker compose exec test make unit-test
@@ -22,3 +22,6 @@ jobs:
       - name: Run end-to-end tests
         run: docker compose exec test make e2e-test
         if: ${{ success() }}
+
+      - name: Stop test containers
+        run: make test-stop

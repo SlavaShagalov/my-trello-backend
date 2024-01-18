@@ -6,17 +6,17 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func NewCheckAuth(uc auth.Usecase, log *zap.Logger, tracer trace.Tracer) func(h http.HandlerFunc) http.HandlerFunc {
+func NewCheckAuth(uc auth.Usecase, log *zap.Logger) func(h http.HandlerFunc) http.HandlerFunc {
 	return func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			ctx, span := tracer.Start(r.Context(), "CheckAuth Middleware")
+			ctx, span := opentel.Tracer.Start(r.Context(), "CheckAuth Middleware")
 			defer span.End()
 			r = r.WithContext(ctx)
 

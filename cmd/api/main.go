@@ -192,9 +192,9 @@ func main() {
 	cardsUC := cardsUsecase.New(cardsRepo)
 
 	// Middleware
-	checkAuth := mw.NewCheckAuth(authUC, logger, opentel.Tracer)
-	accessLog := mw.NewAccessLog(logger, opentel.Tracer)
-	metrics := mw.NewMetrics(mt, opentel.Tracer)
+	checkAuth := mw.NewCheckAuth(authUC, logger)
+	accessLog := mw.NewAccessLog(logger)
+	metrics := mw.NewMetrics(mt)
 
 	router := mux.NewRouter()
 

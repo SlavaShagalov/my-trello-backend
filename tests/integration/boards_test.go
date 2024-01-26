@@ -1,17 +1,21 @@
 package integration
 
 import (
+	"context"
 	"database/sql"
 	pkgBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/config"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pkgZap "github.com/SlavaShagalov/my-trello-backend/internal/pkg/log/zap"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	pkgDb "github.com/SlavaShagalov/my-trello-backend/internal/pkg/storages/postgres"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"log"
 	"os"
@@ -25,27 +29,40 @@ import (
 type BoardsSuite struct {
 	suite.Suite
 	db      *sql.DB
-	logger  *zap.Logger
+	log     *zap.Logger
 	logfile *os.File
 	uc      pkgBoards.Usecase
+	tp      *sdktrace.TracerProvider
+	mp      *sdkmetric.MeterProvider
+	ctx     context.Context
 }
 
 func (s *BoardsSuite) SetupSuite() {
+	s.ctx = context.Background()
+
 	var err error
-	s.logger, s.logfile, err = pkgZap.NewTestLogger("/logs/boards.log")
+	s.log, s.logfile, err = pkgZap.NewTestLogger("/logs/boards.log")
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 
 	config.SetTestPostgresConfig()
-	s.db, err = pkgDb.NewStd(s.logger)
+	s.db, err = pkgDb.NewStd(s.log)
 	s.Require().NoError(err)
+
+	// Set up OpenTelemetry.
+	serviceName := "test"
+	serviceVersion := "0.1.0"
+	s.tp, s.mp, err = opentel.SetupOTelSDK(context.Background(), s.log, serviceName, serviceVersion)
+	if err != nil {
+		return
+	}
 
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
-	repo := boardsRepo.New(s.db, s.logger)
+	repo := boardsRepo.New(s.db, s.log)
 	imgRepo := imgMocks.NewMockRepository(ctrl)
 	s.uc = boardsUC.New(repo, imgRepo)
 }
@@ -53,8 +70,9 @@ func (s *BoardsSuite) SetupSuite() {
 func (s *BoardsSuite) TearDownSuite() {
 	err := s.db.Close()
 	s.Require().NoError(err)
+	s.log.Info("DB connection closed")
 
-	err = s.logger.Sync()
+	err = s.log.Sync()
 	if err != nil {
 		log.Println(err)
 	}
@@ -62,6 +80,10 @@ func (s *BoardsSuite) TearDownSuite() {
 	if err != nil {
 		log.Println(err)
 	}
+
+	_ = s.tp.Shutdown(s.ctx)
+	_ = s.mp.Shutdown(s.ctx)
+	s.log.Info("OpenTelemetry shutdown")
 }
 
 func (s *BoardsSuite) TestCreate() {
@@ -91,7 +113,10 @@ func (s *BoardsSuite) TestCreate() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			board, err := s.uc.Create(test.params)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestCreate "+name)
+			defer span.End()
+
+			board, err := s.uc.Create(ctx, test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
@@ -99,14 +124,14 @@ func (s *BoardsSuite) TestCreate() {
 				assert.Equal(s.T(), test.params.Title, board.Title, "incorrect Title")
 				assert.Equal(s.T(), test.params.Description, board.Description, "incorrect Description")
 
-				getBoard, err := s.uc.Get(board.ID)
+				getBoard, err := s.uc.Get(ctx, board.ID)
 				assert.NoError(s.T(), err, "failed to fetch board from the database")
 				assert.Equal(s.T(), board.ID, getBoard.ID, "incorrect boardID")
 				assert.Equal(s.T(), test.params.WorkspaceID, getBoard.WorkspaceID, "incorrect WorkspaceID")
 				assert.Equal(s.T(), test.params.Title, getBoard.Title, "incorrect Title")
 				assert.Equal(s.T(), test.params.Description, getBoard.Description, "incorrect Description")
 
-				err = s.uc.Delete(board.ID)
+				err = s.uc.Delete(ctx, board.ID)
 				assert.NoError(s.T(), err, "failed to delete created board")
 			}
 		})
@@ -154,7 +179,10 @@ func (s *BoardsSuite) TestList() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			boards, err := s.uc.ListByWorkspace(test.userID)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestList "+name)
+			defer span.End()
+
+			boards, err := s.uc.ListByWorkspace(ctx, test.userID)
 
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
@@ -198,7 +226,10 @@ func (s *BoardsSuite) TestGet() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			board, err := s.uc.Get(test.boardID)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestGet "+name)
+			defer span.End()
+
+			board, err := s.uc.Get(ctx, test.boardID)
 
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
@@ -231,7 +262,10 @@ func (s *BoardsSuite) TestFullUpdate() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			tempBoard, err := s.uc.Create(&pkgBoards.CreateParams{
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestFullUpdate "+name)
+			defer span.End()
+
+			tempBoard, err := s.uc.Create(ctx, &pkgBoards.CreateParams{
 				Title:       "Temp Board",
 				Description: "Temp Board Description",
 				WorkspaceID: 2,
@@ -239,7 +273,7 @@ func (s *BoardsSuite) TestFullUpdate() {
 			require.NoError(s.T(), err, "failed to create temp board")
 
 			test.params.ID = tempBoard.ID
-			board, err := s.uc.FullUpdate(test.params)
+			board, err := s.uc.FullUpdate(ctx, test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
@@ -250,7 +284,7 @@ func (s *BoardsSuite) TestFullUpdate() {
 				assert.Equal(s.T(), test.params.WorkspaceID, board.WorkspaceID, "incorrect WorkspaceID")
 
 				// check board in storages
-				getBoard, err := s.uc.Get(board.ID)
+				getBoard, err := s.uc.Get(ctx, board.ID)
 				assert.NoError(s.T(), err, "failed to fetch board from the database")
 				assert.Equal(s.T(), board.ID, getBoard.ID, "incorrect boardID")
 				assert.Equal(s.T(), board.WorkspaceID, getBoard.WorkspaceID, "incorrect WorkspaceID")
@@ -258,7 +292,7 @@ func (s *BoardsSuite) TestFullUpdate() {
 				assert.Equal(s.T(), board.Description, getBoard.Description, "incorrect Description")
 			}
 
-			err = s.uc.Delete(tempBoard.ID)
+			err = s.uc.Delete(ctx, tempBoard.ID)
 			require.NoError(s.T(), err, "failed to delete temp board")
 		})
 	}
@@ -314,7 +348,10 @@ func (s *BoardsSuite) TestPartialUpdate() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			tempBoard, err := s.uc.Create(&pkgBoards.CreateParams{
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestPartialUpdate "+name)
+			defer span.End()
+
+			tempBoard, err := s.uc.Create(ctx, &pkgBoards.CreateParams{
 				Title:       "Temp Board",
 				Description: "Temp Board Description",
 				WorkspaceID: 2,
@@ -322,7 +359,7 @@ func (s *BoardsSuite) TestPartialUpdate() {
 			require.NoError(s.T(), err, "failed to create temp board")
 
 			test.params.ID = tempBoard.ID
-			board, err := s.uc.PartialUpdate(test.params)
+			board, err := s.uc.PartialUpdate(ctx, test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
@@ -333,14 +370,14 @@ func (s *BoardsSuite) TestPartialUpdate() {
 				assert.Equal(s.T(), test.board.WorkspaceID, board.WorkspaceID, "incorrect WorkspaceID")
 
 				// check board in storages
-				getBoard, err := s.uc.Get(board.ID)
+				getBoard, err := s.uc.Get(ctx, board.ID)
 				assert.NoError(s.T(), err, "failed to fetch board from the database")
 				assert.Equal(s.T(), test.board.Title, getBoard.Title, "incorrect Title")
 				assert.Equal(s.T(), test.board.Description, getBoard.Description, "incorrect Description")
 				assert.Equal(s.T(), test.board.WorkspaceID, getBoard.WorkspaceID, "incorrect WorkspaceID")
 			}
 
-			err = s.uc.Delete(tempBoard.ID)
+			err = s.uc.Delete(ctx, tempBoard.ID)
 			require.NoError(s.T(), err, "failed to delete temp board")
 		})
 	}
@@ -355,7 +392,7 @@ func (s *BoardsSuite) TestDelete() {
 	tests := map[string]testCase{
 		"normal": {
 			setupBoard: func() (models.Board, error) {
-				return s.uc.Create(&pkgBoards.CreateParams{
+				return s.uc.Create(context.Background(), &pkgBoards.CreateParams{
 					Title:       "Test Board",
 					Description: "Test Board Description",
 					WorkspaceID: 1,
@@ -373,14 +410,17 @@ func (s *BoardsSuite) TestDelete() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestDelete "+name)
+			defer span.End()
+
 			board, err := test.setupBoard()
 			s.Require().NoError(err)
 
-			err = s.uc.Delete(board.ID)
+			err = s.uc.Delete(ctx, board.ID)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if test.err == nil {
-				_, err = s.uc.Get(board.ID)
+				_, err = s.uc.Get(ctx, board.ID)
 				assert.ErrorIs(s.T(), err, pkgErrors.ErrBoardNotFound, "board should be deleted")
 			}
 		})

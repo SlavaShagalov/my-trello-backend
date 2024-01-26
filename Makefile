@@ -111,7 +111,7 @@ integration-test:
 
 .PHONY: e2e-test
 e2e-test:
-	go test ./tests/e2e/...
+	go test -v ./tests/e2e/...
 
 .PHONY: unit-cover
 unit-cover:

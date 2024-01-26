@@ -97,6 +97,7 @@ func (s *AuthSuite) TearDownSuite() {
 
 	_ = s.tp.Shutdown(s.ctx)
 	_ = s.mp.Shutdown(s.ctx)
+	s.log.Info("OpenTelemetry shutdown")
 }
 
 func (s *AuthSuite) TestSignIn() {
@@ -141,7 +142,10 @@ func (s *AuthSuite) TestSignIn() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			user, authToken, err := s.uc.SignIn(context.Background(), test.params)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestSignIn "+name)
+			defer span.End()
+
+			user, authToken, err := s.uc.SignIn(ctx, test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			assert.Equal(s.T(), test.user.ID, user.ID, "incorrect user ID")
@@ -153,10 +157,10 @@ func (s *AuthSuite) TestSignIn() {
 			if err == nil {
 				assert.NotEmpty(s.T(), authToken, "incorrect AuthToken")
 
-				_, err = s.uc.CheckAuth(context.Background(), user.ID, authToken)
+				_, err = s.uc.CheckAuth(ctx, user.ID, authToken)
 				assert.NoError(s.T(), err, "unexpected unauthorized")
 
-				err = s.uc.Logout(context.Background(), user.ID, authToken)
+				err = s.uc.Logout(ctx, user.ID, authToken)
 				assert.NoError(s.T(), err, "failed to logout user")
 			}
 		})
@@ -199,7 +203,10 @@ func (s *AuthSuite) TestSignUp() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			user, authToken, err := s.uc.SignUp(context.Background(), test.params)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestSignUp "+name)
+			defer span.End()
+
+			user, authToken, err := s.uc.SignUp(ctx, test.params)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			assert.Equal(s.T(), test.user.Username, user.Username, "incorrect Username")
@@ -209,10 +216,10 @@ func (s *AuthSuite) TestSignUp() {
 			if err == nil {
 				assert.NotEmpty(s.T(), authToken, "incorrect AuthToken")
 
-				_, err = s.uc.CheckAuth(context.Background(), user.ID, authToken)
+				_, err = s.uc.CheckAuth(ctx, user.ID, authToken)
 				assert.NoError(s.T(), err, "unexpected unauthorized")
 
-				err = s.uc.Logout(context.Background(), user.ID, authToken)
+				err = s.uc.Logout(ctx, user.ID, authToken)
 				assert.NoError(s.T(), err, "failed to logout user")
 
 				err = s.usersRepo.Delete(user.ID)
@@ -229,10 +236,8 @@ func (s *AuthSuite) TestCheckAuth() {
 		err       error
 	}
 
-	ctx := context.Background()
-
 	// prepare session for tests
-	user, validAuthToken, err := s.uc.SignIn(ctx, &pkgAuth.SignInParams{
+	user, validAuthToken, err := s.uc.SignIn(context.Background(), &pkgAuth.SignInParams{
 		Username: "slava",
 		Password: "12345678",
 	})
@@ -258,6 +263,9 @@ func (s *AuthSuite) TestCheckAuth() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestCheckAuth "+name)
+			defer span.End()
+
 			userID, err := s.uc.CheckAuth(ctx, test.userID, test.authToken)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
@@ -268,7 +276,7 @@ func (s *AuthSuite) TestCheckAuth() {
 	}
 
 	// delete prepared session
-	err = s.uc.Logout(ctx, user.ID, validAuthToken)
+	err = s.uc.Logout(context.Background(), user.ID, validAuthToken)
 	assert.NoError(s.T(), err, "failed to logout user")
 }
 
@@ -306,11 +314,14 @@ func (s *AuthSuite) TestLogout() {
 
 	for name, test := range tests {
 		s.Run(name, func() {
-			err = s.uc.Logout(context.Background(), test.userID, test.authToken)
+			ctx, span := opentel.Tracer.Start(context.Background(), "TestLogout "+name)
+			defer span.End()
+
+			err = s.uc.Logout(ctx, test.userID, test.authToken)
 			assert.ErrorIs(s.T(), err, test.err, "unexpected error")
 
 			if err == nil {
-				_, err = s.uc.CheckAuth(context.Background(), user.ID, test.authToken)
+				_, err = s.uc.CheckAuth(ctx, user.ID, test.authToken)
 				assert.ErrorIs(s.T(), err, pkgErrors.ErrSessionNotFound, "unexpected error")
 			}
 		})

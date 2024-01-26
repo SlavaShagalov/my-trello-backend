@@ -28,7 +28,7 @@ const createCmd = `
 	VALUES ($1, $2, $3)
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) Create(params *pkgBoards.CreateParams) (models.Board, error) {
+func (repo *repository) Create(ctx context.Context, params *pkgBoards.CreateParams) (models.Board, error) {
 	row := repo.pool.QueryRow(context.TODO(), createCmd, params.WorkspaceID, params.Title, params.Description)
 
 	var board models.Board
@@ -57,7 +57,7 @@ const listCmd = `
 	FROM boards
 	WHERE workspace_id = $1;`
 
-func (repo *repository) List(workspaceID int) ([]models.Board, error) {
+func (repo *repository) List(ctx context.Context, workspaceID int) ([]models.Board, error) {
 	rows, err := repo.pool.Query(context.TODO(), listCmd, workspaceID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd),
@@ -107,7 +107,7 @@ const listByTitleCmd = `
 	JOIN workspaces w on w.id = b.workspace_id
 	WHERE lower(b.title) LIKE lower('%' || $1 || '%') AND w.user_id = $2;`
 
-func (repo *repository) ListByTitle(title string, userID int) ([]models.Board, error) {
+func (repo *repository) ListByTitle(ctx context.Context, title string, userID int) ([]models.Board, error) {
 	rows, err := repo.pool.Query(context.TODO(), listByTitleCmd, title, userID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
@@ -156,7 +156,7 @@ const getCmd = `
 	FROM boards
 	WHERE id = $1;`
 
-func (repo *repository) Get(id int) (models.Board, error) {
+func (repo *repository) Get(ctx context.Context, id int) (models.Board, error) {
 	row := repo.pool.QueryRow(context.TODO(), getCmd, id)
 
 	var board models.Board
@@ -182,7 +182,7 @@ const fullUpdateCmd = `
 	WHERE id = $4
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) FullUpdate(params *pkgBoards.FullUpdateParams) (models.Board, error) {
+func (repo *repository) FullUpdate(ctx context.Context, params *pkgBoards.FullUpdateParams) (models.Board, error) {
 	row := repo.pool.QueryRow(context.TODO(), fullUpdateCmd, params.Title, params.Description, params.WorkspaceID, params.ID)
 
 	var board models.Board
@@ -205,7 +205,7 @@ const partialUpdateCmd = `
 	WHERE id = $7
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) PartialUpdate(params *pkgBoards.PartialUpdateParams) (models.Board, error) {
+func (repo *repository) PartialUpdate(ctx context.Context, params *pkgBoards.PartialUpdateParams) (models.Board, error) {
 	row := repo.pool.QueryRow(context.TODO(), partialUpdateCmd,
 		params.UpdateTitle,
 		params.Title,
@@ -237,7 +237,7 @@ const updateBackgroundCmd = `
 	SET background = $1
 	WHERE id = $2;`
 
-func (repo *repository) UpdateBackground(id int, background string) error {
+func (repo *repository) UpdateBackground(ctx context.Context, id int, background string) error {
 	result, err := repo.pool.Exec(context.TODO(), updateBackgroundCmd, background, id)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
@@ -264,7 +264,7 @@ const deleteCmd = `
 	DELETE FROM boards 
 	WHERE id = $1;`
 
-func (repo *repository) Delete(id int) error {
+func (repo *repository) Delete(ctx context.Context, id int) error {
 	result, err := repo.pool.Exec(context.TODO(), deleteCmd, id)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),

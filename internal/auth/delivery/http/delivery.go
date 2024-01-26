@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"github.com/SlavaShagalov/my-trello-backend/internal/auth"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
@@ -109,8 +110,12 @@ func (d *delivery) signup(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/auth/signin [post]
 func (d *delivery) signin(w http.ResponseWriter, r *http.Request) {
-	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+signInPath)
-	defer span.End()
+	ctx, span := opentel.Tracer.Start(r.Context(), "Measure Span")
+	_, spanN := opentel.Tracer.Start(context.Background(), r.Method+" "+signInPath)
+	defer func() {
+		spanN.End()
+		span.End()
+	}()
 
 	opentel.Counter.Add(ctx, 1)
 

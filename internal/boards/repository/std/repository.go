@@ -1,14 +1,20 @@
 package std
 
 import (
+	"context"
 	"database/sql"
 	pkgBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
 	"github.com/SlavaShagalov/my-trello-backend/internal/models"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pkgErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+)
+
+const (
+	componentName = "Boards Repository"
 )
 
 type repository struct {
@@ -25,7 +31,10 @@ const createCmd = `
 	VALUES ($1, $2, $3)
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) Create(params *pkgBoards.CreateParams) (models.Board, error) {
+func (repo *repository) Create(ctx context.Context, params *pkgBoards.CreateParams) (models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Create")
+	defer span.End()
+
 	row := repo.db.QueryRow(createCmd, params.WorkspaceID, params.Title, params.Description)
 
 	var board models.Board
@@ -54,7 +63,10 @@ const listCmd = `
 	FROM boards
 	WHERE workspace_id = $1;`
 
-func (repo *repository) List(workspaceID int) ([]models.Board, error) {
+func (repo *repository) List(ctx context.Context, workspaceID int) ([]models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"List")
+	defer span.End()
+
 	rows, err := repo.db.Query(listCmd, workspaceID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd),
@@ -104,7 +116,10 @@ const listByTitleCmd = `
 	JOIN workspaces w on w.id = b.workspace_id
 	WHERE lower(b.title) LIKE lower('%' || $1 || '%') AND w.user_id = $2;`
 
-func (repo *repository) ListByTitle(title string, userID int) ([]models.Board, error) {
+func (repo *repository) ListByTitle(ctx context.Context, title string, userID int) ([]models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"ListByTitle")
+	defer span.End()
+
 	rows, err := repo.db.Query(listByTitleCmd, title, userID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
@@ -153,7 +168,10 @@ const getCmd = `
 	FROM boards
 	WHERE id = $1;`
 
-func (repo *repository) Get(id int) (models.Board, error) {
+func (repo *repository) Get(ctx context.Context, id int) (models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Get")
+	defer span.End()
+
 	row := repo.db.QueryRow(getCmd, id)
 
 	var board models.Board
@@ -179,7 +197,10 @@ const fullUpdateCmd = `
 	WHERE id = $4
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) FullUpdate(params *pkgBoards.FullUpdateParams) (models.Board, error) {
+func (repo *repository) FullUpdate(ctx context.Context, params *pkgBoards.FullUpdateParams) (models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"FullUpdate")
+	defer span.End()
+
 	row := repo.db.QueryRow(fullUpdateCmd, params.Title, params.Description, params.WorkspaceID, params.ID)
 
 	var board models.Board
@@ -202,7 +223,10 @@ const partialUpdateCmd = `
 	WHERE id = $7
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
-func (repo *repository) PartialUpdate(params *pkgBoards.PartialUpdateParams) (models.Board, error) {
+func (repo *repository) PartialUpdate(ctx context.Context, params *pkgBoards.PartialUpdateParams) (models.Board, error) {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"PartialUpdate")
+	defer span.End()
+
 	row := repo.db.QueryRow(partialUpdateCmd,
 		params.UpdateTitle,
 		params.Title,
@@ -234,7 +258,10 @@ const updateBackgroundCmd = `
 	SET background = $1
 	WHERE id = $2;`
 
-func (repo *repository) UpdateBackground(id int, background string) error {
+func (repo *repository) UpdateBackground(ctx context.Context, id int, background string) error {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"UpdateBackground")
+	defer span.End()
+
 	result, err := repo.db.Exec(updateBackgroundCmd, background, id)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
@@ -261,7 +288,10 @@ const deleteCmd = `
 	DELETE FROM boards 
 	WHERE id = $1;`
 
-func (repo *repository) Delete(id int) error {
+func (repo *repository) Delete(ctx context.Context, id int) error {
+	_, span := opentel.Tracer.Start(ctx, componentName+" "+"Delete")
+	defer span.End()
+
 	result, err := repo.db.Exec(deleteCmd, id)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),

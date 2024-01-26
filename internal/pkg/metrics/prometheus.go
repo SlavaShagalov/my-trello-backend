@@ -10,6 +10,7 @@ import (
 type PrometheusMetrics interface {
 	SetupMetrics() error
 	ExecutionTime() *prometheus.HistogramVec
+	SpanTime() *prometheus.HistogramVec
 	ErrorsHits() *prometheus.CounterVec
 	SuccessHits() *prometheus.CounterVec
 	TotalHits() prometheus.Counter
@@ -17,6 +18,7 @@ type PrometheusMetrics interface {
 
 type prometheusMetrics struct {
 	executionTime *prometheus.HistogramVec
+	spanTime      *prometheus.HistogramVec
 	errorsHits    *prometheus.CounterVec
 	successHits   *prometheus.CounterVec
 	totalHits     prometheus.Counter
@@ -28,6 +30,10 @@ func NewPrometheusMetrics(serviceName string) PrometheusMetrics {
 			Name: serviceName + "_durations",
 			Help: "Shows durations in minutes of request execution",
 		}, []string{"status", "path", "method"}),
+		spanTime: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Name: serviceName + "_span",
+			Help: "Shows durations of SPAN",
+		}, []string{"path", "method"}),
 		errorsHits: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: serviceName + "_errors_hits",
 			Help: "Counts errors responses from service",
@@ -50,6 +56,10 @@ func (m *prometheusMetrics) SetupMetrics() error {
 		return err
 	}
 
+	if err := prometheus.Register(m.spanTime); err != nil {
+		return err
+	}
+
 	if err := prometheus.Register(m.errorsHits); err != nil {
 		return err
 	}
@@ -67,6 +77,10 @@ func (m *prometheusMetrics) SetupMetrics() error {
 
 func (m *prometheusMetrics) ExecutionTime() *prometheus.HistogramVec {
 	return m.executionTime
+}
+
+func (m *prometheusMetrics) SpanTime() *prometheus.HistogramVec {
+	return m.spanTime
 }
 
 func (m *prometheusMetrics) ErrorsHits() *prometheus.CounterVec {

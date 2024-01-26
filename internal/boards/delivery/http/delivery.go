@@ -7,6 +7,7 @@ import (
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
+	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"io"
@@ -66,6 +67,9 @@ func RegisterHandlers(mux *mux.Router, uc pBoards.Usecase, log *zap.Logger, chec
 //
 //	@Security		cookieAuth
 func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -92,7 +96,7 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID: workspaceID,
 	}
 
-	board, err := del.uc.Create(&params)
+	board, err := del.uc.Create(ctx, &params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -118,6 +122,9 @@ func (del *delivery) create(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	workspaceID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -125,7 +132,7 @@ func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boards, err := del.uc.ListByWorkspace(workspaceID)
+	boards, err := del.uc.ListByWorkspace(ctx, workspaceID)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -151,6 +158,9 @@ func (del *delivery) listByWorkspace(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	userID, ok := r.Context().Value(mw.ContextUserID).(int)
 	if !ok {
 		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
@@ -159,7 +169,7 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 
-	boards, err := del.uc.ListByTitle(title, userID)
+	boards, err := del.uc.ListByTitle(ctx, title, userID)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -186,6 +196,9 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -193,7 +206,7 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	board, err := del.uc.Get(boardID)
+	board, err := del.uc.Get(ctx, boardID)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -221,6 +234,9 @@ func (del *delivery) get(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -251,7 +267,7 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 		params.Description = *request.Description
 	}
 
-	board, err := del.uc.PartialUpdate(&params)
+	board, err := del.uc.PartialUpdate(ctx, &params)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -281,6 +297,9 @@ func (del *delivery) partialUpdate(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	userID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -302,7 +321,7 @@ func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	board, err := del.uc.UpdateBackground(userID, buf.Bytes(), header.Filename)
+	board, err := del.uc.UpdateBackground(ctx, userID, buf.Bytes(), header.Filename)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
@@ -329,6 +348,9 @@ func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 //
 //	@Security		cookieAuth
 func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := opentel.Tracer.Start(r.Context(), r.Method+" "+r.RequestURI)
+	defer span.End()
+
 	vars := mux.Vars(r)
 	boardID, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -336,7 +358,7 @@ func (del *delivery) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = del.uc.Delete(boardID)
+	err = del.uc.Delete(ctx, boardID)
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return

@@ -14,8 +14,15 @@ import (
 func NewMetrics(mt metrics.PrometheusMetrics) func(h http.HandlerFunc) http.HandlerFunc {
 	return func(h http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			beginSpan := time.Now()
 			ctx, span := opentel.Tracer.Start(r.Context(), "Metrics Middleware")
 			defer span.End()
+			endSpan := time.Since(beginSpan).Seconds()
+
+			mt.SpanTime().
+				WithLabelValues("SPAN", "SPAN").
+				Observe(endSpan)
+
 			r = r.WithContext(ctx)
 
 			wWithCode := negroni.NewResponseWriter(w)

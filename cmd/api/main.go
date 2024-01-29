@@ -70,7 +70,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// Config
+	// ===== Configuration =====
 	config.SetDefaultPostgresConfig()
 	config.SetDefaultRedisConfig()
 	config.SetDefaultS3Config()
@@ -85,7 +85,7 @@ func main() {
 	}
 	log.Printf("Configuration read successfully")
 
-	// Logger
+	// ===== Logger =====
 	logger, logfile, err := pLog.NewProdLogger("/logs/" + viper.GetString(config.ServerName) + ".log")
 	if err != nil {
 		log.Println(err)
@@ -103,7 +103,7 @@ func main() {
 	}()
 	logger.Info("API service starting...")
 
-	// ===== Set up OpenTelemetry =====
+	// ===== OpenTelemetry =====
 	serviceName := viper.GetString(config.ServerName)
 	logger.Info("", zap.String("server_name", serviceName))
 	serviceVersion := "0.1.0"
@@ -114,7 +114,7 @@ func main() {
 	defer func() { _ = tp.Shutdown(ctx) }()
 	defer func() { _ = mp.Shutdown(ctx) }()
 
-	// Data Storage
+	// ===== Data Storage =====
 	db, err := postgres.NewStd(logger)
 	if err != nil {
 		os.Exit(1)
@@ -127,7 +127,7 @@ func main() {
 		logger.Info("Postgres connection closed")
 	}()
 
-	// Sessions Storage
+	// ===== Sessions Storage =====
 	redisClient, err := pStorages.NewRedis(logger, ctx)
 	if err != nil {
 		os.Exit(1)
@@ -140,13 +140,13 @@ func main() {
 		logger.Info("Redis client closed")
 	}()
 
-	// S3
+	// ===== S3 =====
 	s3Client, err := pStorages.NewS3(logger)
 	if err != nil {
 		os.Exit(1)
 	}
 
-	// Prometheus
+	// ===== Prometheus =====
 	mt := pMetrics.NewPrometheusMetrics("api")
 	err = mt.SetupMetrics()
 	if err != nil {
@@ -154,10 +154,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Hasher
+	// ===== Hasher =====
 	hasher := pHasher.New()
 
-	// Repo
+	// ===== Repositories =====
 	var usersRepo users.Repository
 	var workspacesRepo workspaces.Repository
 	var boardsRepo boards.Repository
@@ -183,7 +183,7 @@ func main() {
 	imagesRepo := imagesRepository.New(s3Client, logger)
 	sessionsRepo := sessionsRepository.New(redisClient, context.Background(), logger)
 
-	// Use cases
+	// ===== Usecases =====
 	authUC := authUsecase.New(usersRepo, sessionsRepo, hasher, logger)
 	usersUC := usersUsecase.New(usersRepo, imagesRepo)
 	workspacesUC := workspacesUsecase.New(workspacesRepo)
@@ -191,14 +191,14 @@ func main() {
 	listsUC := listsUsecase.New(listsRepo)
 	cardsUC := cardsUsecase.New(cardsRepo)
 
-	// Middleware
+	// ===== Middleware =====
 	checkAuth := mw.NewCheckAuth(authUC, logger)
 	accessLog := mw.NewAccessLog(logger)
 	metrics := mw.NewMetrics(mt)
 
 	router := mux.NewRouter()
 
-	// Delivery
+	// ===== Delivery =====
 	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics)
 	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth, metrics)
 	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth, metrics)
@@ -206,10 +206,10 @@ func main() {
 	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth, metrics)
 	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth, metrics)
 
-	// Swagger
+	// ===== Swagger =====
 	router.PathPrefix(constants.ApiPrefix + "/swagger/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
 
-	// Router
+	// ===== Router =====
 	server := http.Server{
 		Addr:    ":" + viper.GetString(config.ServerPort),
 		Handler: accessLog(router),
@@ -219,7 +219,7 @@ func main() {
 	go pMetrics.ServePrometheusHTTP("0.0.0.0:9001")
 	logger.Info("Metrics started")
 
-	// Start
+	// ===== Start =====
 	logger.Info("API service started", zap.String("port", viper.GetString(config.ServerPort)))
 	if err = server.ListenAndServe(); err != nil {
 		logger.Error("API server stopped", zap.Error(err))

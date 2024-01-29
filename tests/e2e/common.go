@@ -29,7 +29,6 @@ func (s *EndToEndSuite) BeforeAll(t provider.T) {
 		).
 		After(func(response *http.Response, errors []error) error {
 			respHeader := response.Header
-			//_ = respHeader
 			s.authCookie = respHeader.Get("Set-Cookie")
 			return nil
 		}).

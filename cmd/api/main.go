@@ -168,6 +168,8 @@ func main() {
 	listsRepo = listsRepository.New(db, logger)
 	cardsRepo = cardsRepository.New(db, logger)
 
+	serverType := viper.GetString(config.ServerType)
+
 	mode := "std"
 	if mode == "std" {
 		boardsRepo = boardsRepository.New(db, logger)
@@ -193,17 +195,18 @@ func main() {
 
 	// ===== Middleware =====
 	checkAuth := mw.NewCheckAuth(authUC, logger)
-	accessLog := mw.NewAccessLog(logger)
+	accessLog := mw.NewAccessLog(serverType, logger)
+	cors := mw.NewCors()
 	metrics := mw.NewMetrics(mt)
 
 	router := mux.NewRouter()
 
 	// ===== Delivery =====
-	authDel.RegisterHandlers(router, authUC, logger, checkAuth, metrics)
+	authDel.RegisterHandlers(router, authUC, usersUC, logger, checkAuth, metrics)
 	usersDel.RegisterHandlers(router, usersUC, logger, checkAuth, metrics)
-	workspacesDel.RegisterHandlers(router, workspacesUC, logger, checkAuth, metrics)
+	workspacesDel.RegisterHandlers(router, workspacesUC, boardsUC, logger, checkAuth, metrics)
 	boardsDel.RegisterHandlers(router, boardsUC, logger, checkAuth, metrics)
-	listsDel.RegisterHandlers(router, listsUC, logger, checkAuth, metrics)
+	listsDel.RegisterHandlers(router, listsUC, cardsUC, logger, checkAuth, metrics)
 	cardsDel.RegisterHandlers(router, cardsUC, logger, checkAuth, metrics)
 
 	// ===== Swagger =====
@@ -212,7 +215,7 @@ func main() {
 	// ===== Router =====
 	server := http.Server{
 		Addr:    ":" + viper.GetString(config.ServerPort),
-		Handler: accessLog(router),
+		Handler: accessLog(cors(router)),
 	}
 
 	logger.Info("Starting metrics...", zap.String("address", "0.0.0.0:9001"))

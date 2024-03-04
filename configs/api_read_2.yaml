@@ -1,6 +1,7 @@
 # Server
 NAME: read_2
 PORT: 8002
+TYPE: r
 
 # Postgres
 PG_HOST: db

@@ -1,6 +1,7 @@
 # Server
 NAME: test
 PORT: 8000
+TYPE: rw
 
 # Postgres
 PG_HOST: test-db

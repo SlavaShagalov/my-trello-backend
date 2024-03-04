@@ -1,6 +1,7 @@
 # Server
 NAME: mirror
 PORT: 8003
+TYPE: r
 
 # Postgres
 PG_HOST: db

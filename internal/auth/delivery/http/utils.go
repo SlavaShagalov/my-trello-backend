@@ -10,8 +10,10 @@ func createSessionCookie(token string) *http.Cookie {
 	return &http.Cookie{
 		Name:     constants.SessionName,
 		Value:    token,
-		Expires:  time.Now().Add(constants.SessionLivingTime),
-		HttpOnly: true,
 		Path:     "/",
+		Expires:  time.Now().Add(constants.SessionLivingTime),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
 	}
 }

@@ -8,6 +8,7 @@ import (
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
 	pHTTP "github.com/SlavaShagalov/my-trello-backend/internal/pkg/http"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/opentel"
+	"github.com/SlavaShagalov/my-trello-backend/internal/users"
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
@@ -20,22 +21,26 @@ const (
 	signInPath = constants.ApiPrefix + authPrefix + "/signin"
 	signUpPath = constants.ApiPrefix + authPrefix + "/signup"
 	logoutPath = constants.ApiPrefix + authPrefix + "/logout"
+	mePath     = constants.ApiPrefix + authPrefix + "/me"
 )
 
 type delivery struct {
-	uc  auth.Usecase
-	log *zap.Logger
+	uc      auth.Usecase
+	usersUC users.Usecase
+	log     *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc auth.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc auth.Usecase, usersUC users.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
-		uc:  uc,
-		log: log,
+		uc:      uc,
+		usersUC: usersUC,
+		log:     log,
 	}
 
 	mux.HandleFunc(signUpPath, metrics(del.signup)).Methods(http.MethodPost)
 	mux.HandleFunc(signInPath, metrics(del.signin)).Methods(http.MethodPost)
 	mux.HandleFunc(logoutPath, metrics(checkAuth(del.logout))).Methods(http.MethodDelete)
+	mux.HandleFunc(mePath, metrics(checkAuth(del.me))).Methods(http.MethodGet)
 }
 
 // signup godoc
@@ -196,4 +201,21 @@ func (d *delivery) logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, newCookie)
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (d *delivery) me(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value(mw.ContextUserID).(int)
+	if !ok {
+		pHTTP.HandleError(w, r, pErrors.ErrReadBody)
+		return
+	}
+
+	user, err := d.usersUC.Get(userID)
+	if err != nil {
+		pHTTP.HandleError(w, r, err)
+		return
+	}
+
+	response := newGetResponse(&user)
+	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }

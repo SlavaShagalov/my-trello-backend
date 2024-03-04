@@ -18,16 +18,25 @@ type partialUpdateRequest struct {
 	Description *string `json:"description"`
 }
 
-// API responses
-type listResponse struct {
-	Workspaces []models.Workspace `json:"workspaces"`
+type workspaceResponse struct {
+	ID          int            `json:"id"`
+	Title       string         `json:"title"`
+	Description string         `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	Boards      []models.Board `json:"boards"`
 }
 
-func newListResponse(workspaces []models.Workspace) *listResponse {
-	return &listResponse{
-		Workspaces: workspaces,
-	}
+// API responses
+type listResponse struct {
+	Workspaces []workspaceResponse `json:"workspaces"`
 }
+
+//func newListResponse(workspaces []models.Workspace) *listResponse {
+//	return &listResponse{
+//		Workspaces: workspaces,
+//	}
+//}
 
 type createResponse struct {
 	ID          int       `json:"id"`

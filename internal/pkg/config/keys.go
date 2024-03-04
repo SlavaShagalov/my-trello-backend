@@ -4,6 +4,7 @@ package config
 const (
 	ServerName = "NAME"
 	ServerPort = "PORT"
+	ServerType = "TYPE"
 )
 
 // Postgres

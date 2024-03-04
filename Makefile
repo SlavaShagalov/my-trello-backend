@@ -44,6 +44,14 @@ api-up:
 api-stop:
 	docker compose -f docker-compose.yml stop db sessions-db api-main balancer
 
+.PHONY: mirror-up
+mirror-up:
+	docker compose -f docker-compose.yml up -d --build db sessions-db api-mirror
+
+.PHONY: mirror-stop
+mirror-stop:
+	docker compose -f docker-compose.yml stop db sessions-db api-mirror
+
 .PHONY: monitoring-up
 monitoring-up:
 	docker compose -f docker-compose.yml up -d --build node-exporter prometheus grafana jaeger

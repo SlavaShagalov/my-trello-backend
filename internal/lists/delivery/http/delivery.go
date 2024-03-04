@@ -1,6 +1,7 @@
 package http
 
 import (
+	pCards "github.com/SlavaShagalov/my-trello-backend/internal/cards"
 	pLists "github.com/SlavaShagalov/my-trello-backend/internal/lists"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
@@ -13,14 +14,16 @@ import (
 )
 
 type delivery struct {
-	uc  pLists.Usecase
-	log *zap.Logger
+	uc      pLists.Usecase
+	cardsUC pCards.Usecase
+	log     *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pLists.Usecase, cardsUC pCards.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
-		uc:  uc,
-		log: log,
+		uc:      uc,
+		cardsUC: cardsUC,
+		log:     log,
 	}
 
 	const (
@@ -125,7 +128,25 @@ func (del *delivery) listByBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := newListResponse(lists)
+	response := listResponse{Lists: make([]itemResponse, len(lists))}
+
+	for i, _ := range lists {
+		response.Lists[i].ID = lists[i].ID
+		response.Lists[i].BoardID = lists[i].BoardID
+		response.Lists[i].Title = lists[i].Title
+		response.Lists[i].Position = lists[i].Position
+		response.Lists[i].CreatedAt = lists[i].CreatedAt
+		response.Lists[i].UpdatedAt = lists[i].UpdatedAt
+
+		cards, err := del.cardsUC.ListByList(lists[i].ID)
+		if err != nil {
+			pHTTP.HandleError(w, r, err)
+			return
+		}
+		response.Lists[i].Cards = cards
+	}
+
+	//response := newListResponse(lists)
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 

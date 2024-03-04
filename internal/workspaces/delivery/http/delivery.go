@@ -1,6 +1,7 @@
 package http
 
 import (
+	pBoards "github.com/SlavaShagalov/my-trello-backend/internal/boards"
 	mw "github.com/SlavaShagalov/my-trello-backend/internal/middleware"
 	"github.com/SlavaShagalov/my-trello-backend/internal/pkg/constants"
 	pErrors "github.com/SlavaShagalov/my-trello-backend/internal/pkg/errors"
@@ -13,14 +14,17 @@ import (
 )
 
 type delivery struct {
-	uc  pWorkspaces.Usecase
-	log *zap.Logger
+	uc       pWorkspaces.Usecase
+	boardsUC pBoards.Usecase
+	log      *zap.Logger
 }
 
-func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, log *zap.Logger, checkAuth mw.Middleware, metrics mw.Middleware) {
+func RegisterHandlers(mux *mux.Router, uc pWorkspaces.Usecase, boardsUC pBoards.Usecase, log *zap.Logger,
+	checkAuth mw.Middleware, metrics mw.Middleware) {
 	del := delivery{
-		uc:  uc,
-		log: log,
+		uc:       uc,
+		boardsUC: boardsUC,
+		log:      log,
 	}
 
 	const (
@@ -116,7 +120,24 @@ func (del *delivery) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := newListResponse(workspaces)
+	response := listResponse{Workspaces: make([]workspaceResponse, len(workspaces))}
+
+	for i, _ := range workspaces {
+		response.Workspaces[i].ID = workspaces[i].ID
+		response.Workspaces[i].Title = workspaces[i].Title
+		response.Workspaces[i].Description = workspaces[i].Description
+		response.Workspaces[i].CreatedAt = workspaces[i].CreatedAt
+		response.Workspaces[i].UpdatedAt = workspaces[i].UpdatedAt
+
+		boards, err := del.boardsUC.ListByWorkspace(r.Context(), workspaces[i].ID)
+		if err != nil {
+			pHTTP.HandleError(w, r, err)
+			return
+		}
+		response.Workspaces[i].Boards = boards
+	}
+
+	//response := newListResponse(workspaces)
 	pHTTP.SendJSON(w, r, http.StatusOK, response)
 }
 

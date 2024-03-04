@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func NewAccessLog(log *zap.Logger) func(handler http.Handler) http.Handler {
+func NewAccessLog(serverType string, log *zap.Logger) func(handler http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx, span := opentel.Tracer.Start(r.Context(), "AccessLog Middleware "+r.RequestURI)
@@ -18,6 +18,13 @@ func NewAccessLog(log *zap.Logger) func(handler http.Handler) http.Handler {
 				zap.String("url", r.URL.String()),
 				zap.String("protocol", r.Proto),
 				zap.String("origin", r.Header.Get("Origin")))
+
+			if serverType == "r" && r.Method != http.MethodGet {
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("Mirror is read-only"))
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
 
 			handler.ServeHTTP(w, r)
 		})

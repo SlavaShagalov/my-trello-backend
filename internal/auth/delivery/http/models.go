@@ -66,3 +66,25 @@ func newSignUpResponse(user *models.User) *SignUpResponse {
 		UpdatedAt: user.UpdatedAt,
 	}
 }
+
+type getResponse struct {
+	ID        int       `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	Avatar    *string   `json:"avatar"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func newGetResponse(user *models.User) *getResponse {
+	return &getResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Name:      user.Name,
+		Avatar:    user.Avatar,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+}

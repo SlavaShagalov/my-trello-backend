@@ -1,6 +1,7 @@
 # Server
 NAME: main
 PORT: 8000
+TYPE: rw
 
 # Postgres
 PG_HOST: db

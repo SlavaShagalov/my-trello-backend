@@ -66,8 +66,8 @@ func (uc *usecase) PartialUpdate(params *users.PartialUpdateParams) (models.User
 			return models.User{}, err
 		}
 
-		_, err := uc.usersRepo.GetByUsername(context.TODO(), params.Username)
-		if !errors.Is(err, pkgErrors.ErrUserNotFound) {
+		user, err := uc.usersRepo.GetByUsername(context.TODO(), params.Username)
+		if !errors.Is(err, pkgErrors.ErrUserNotFound) && user.ID != params.ID {
 			if err != nil {
 				return models.User{}, err
 			}

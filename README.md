@@ -1,5 +1,23 @@
 # MyTrello Backend
 
+### How to run server?
+
+```shell
+make api-up
+```
+
+### How to stop server?
+
+```shell
+make stop
+```
+
+### How to clear all absolutely (delete all containers)?
+
+```shell
+make down
+```
+
 ## Technologies:
 
 - Golang

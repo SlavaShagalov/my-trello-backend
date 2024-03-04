@@ -19,12 +19,26 @@ type partialUpdateRequest struct {
 }
 
 // API responses
+type itemResponse struct {
+	ID        int           `json:"id"`
+	BoardID   int           `json:"board_id"`
+	Title     string        `json:"title"`
+	Position  int           `json:"position"`
+	CreatedAt time.Time     `json:"created_at"`
+	UpdatedAt time.Time     `json:"updated_at"`
+	Cards     []models.Card `json:"cards"`
+}
+
 type listResponse struct {
+	Lists []itemResponse `json:"lists"`
+}
+
+type listSimpleResponse struct {
 	Lists []models.List `json:"lists"`
 }
 
-func newListResponse(lists []models.List) *listResponse {
-	return &listResponse{
+func newListResponse(lists []models.List) *listSimpleResponse {
+	return &listSimpleResponse{
 		Lists: lists,
 	}
 }

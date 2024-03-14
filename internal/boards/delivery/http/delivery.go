@@ -311,7 +311,6 @@ func (del *delivery) updateBackground(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pHTTP.HandleError(w, r, err)
 		return
-
 	}
 
 	buf := bytes.NewBuffer(nil)

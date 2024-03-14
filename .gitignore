@@ -19,9 +19,3 @@ archive
 
 # Allure
 allure-results
-
-# Mocks
-mocks
-
-EasyJSON
-*_easyjson.go

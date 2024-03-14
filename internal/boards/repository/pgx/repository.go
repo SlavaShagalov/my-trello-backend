@@ -20,7 +20,10 @@ type repository struct {
 }
 
 func New(pool *pgxpool.Pool, log *zap.Logger) pkgBoards.Repository {
-	return &repository{pool: pool, log: log}
+	return &repository{
+		pool: pool,
+		log:  log,
+	}
 }
 
 const createCmd = `
@@ -29,7 +32,7 @@ const createCmd = `
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
 func (repo *repository) Create(ctx context.Context, params *pkgBoards.CreateParams) (models.Board, error) {
-	row := repo.pool.QueryRow(context.TODO(), createCmd, params.WorkspaceID, params.Title, params.Description)
+	row := repo.pool.QueryRow(ctx, createCmd, params.WorkspaceID, params.Title, params.Description)
 
 	var board models.Board
 	err := scanBoard(row, &board)
@@ -58,15 +61,13 @@ const listCmd = `
 	WHERE workspace_id = $1;`
 
 func (repo *repository) List(ctx context.Context, workspaceID int) ([]models.Board, error) {
-	rows, err := repo.pool.Query(context.TODO(), listCmd, workspaceID)
+	rows, err := repo.pool.Query(ctx, listCmd, workspaceID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", listCmd),
 			zap.Int("workspace_id", workspaceID))
 		return nil, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
-	defer func() {
-		rows.Close()
-	}()
+	defer rows.Close()
 
 	boards := []models.Board{}
 	var board models.Board
@@ -108,7 +109,7 @@ const listByTitleCmd = `
 	WHERE lower(b.title) LIKE lower('%' || $1 || '%') AND w.user_id = $2;`
 
 func (repo *repository) ListByTitle(ctx context.Context, title string, userID int) ([]models.Board, error) {
-	rows, err := repo.pool.Query(context.TODO(), listByTitleCmd, title, userID)
+	rows, err := repo.pool.Query(ctx, listByTitleCmd, title, userID)
 	if err != nil {
 		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", listByTitleCmd),
 			zap.String("title", title))
@@ -157,7 +158,7 @@ const getCmd = `
 	WHERE id = $1;`
 
 func (repo *repository) Get(ctx context.Context, id int) (models.Board, error) {
-	row := repo.pool.QueryRow(context.TODO(), getCmd, id)
+	row := repo.pool.QueryRow(ctx, getCmd, id)
 
 	var board models.Board
 	err := scanBoard(row, &board)
@@ -183,7 +184,7 @@ const fullUpdateCmd = `
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
 func (repo *repository) FullUpdate(ctx context.Context, params *pkgBoards.FullUpdateParams) (models.Board, error) {
-	row := repo.pool.QueryRow(context.TODO(), fullUpdateCmd, params.Title, params.Description, params.WorkspaceID, params.ID)
+	row := repo.pool.QueryRow(ctx, fullUpdateCmd, params.Title, params.Description, params.WorkspaceID, params.ID)
 
 	var board models.Board
 	err := scanBoard(row, &board)
@@ -206,7 +207,7 @@ const partialUpdateCmd = `
 	RETURNING id, workspace_id, title, description, background, created_at, updated_at;`
 
 func (repo *repository) PartialUpdate(ctx context.Context, params *pkgBoards.PartialUpdateParams) (models.Board, error) {
-	row := repo.pool.QueryRow(context.TODO(), partialUpdateCmd,
+	row := repo.pool.QueryRow(ctx, partialUpdateCmd,
 		params.UpdateTitle,
 		params.Title,
 		params.UpdateDescription,
@@ -223,8 +224,7 @@ func (repo *repository) PartialUpdate(ctx context.Context, params *pkgBoards.Par
 			return models.Board{}, errors.Wrap(pkgErrors.ErrBoardNotFound, err.Error())
 		}
 
-		repo.log.Error(constants.DBScanError, zap.Error(err), zap.String("sql_query", partialUpdateCmd),
-			zap.Any("params", params))
+		repo.log.Error(constants.DBScanError, zap.Error(err), zap.Any("params", params))
 		return models.Board{}, errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 
@@ -238,20 +238,13 @@ const updateBackgroundCmd = `
 	WHERE id = $2;`
 
 func (repo *repository) UpdateBackground(ctx context.Context, id int, background string) error {
-	result, err := repo.pool.Exec(context.TODO(), updateBackgroundCmd, background, id)
+	result, err := repo.pool.Exec(ctx, updateBackgroundCmd, background, id)
 	if err != nil {
-		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
-			zap.Int("id", id))
+		repo.log.Error(constants.DBError, zap.Error(err), zap.Int("id", id))
 		return pkgErrors.ErrDb
 	}
 
 	rowsAffected := result.RowsAffected()
-	if err != nil {
-		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql", updateBackgroundCmd),
-			zap.Int("id", id))
-		return pkgErrors.ErrDb
-	}
-
 	if rowsAffected == 0 {
 		return pkgErrors.ErrBoardNotFound
 	}
@@ -265,10 +258,9 @@ const deleteCmd = `
 	WHERE id = $1;`
 
 func (repo *repository) Delete(ctx context.Context, id int) error {
-	result, err := repo.pool.Exec(context.TODO(), deleteCmd, id)
+	result, err := repo.pool.Exec(ctx, deleteCmd, id)
 	if err != nil {
-		repo.log.Error(constants.DBError, zap.Error(err), zap.String("sql_query", deleteCmd),
-			zap.Int("id", id))
+		repo.log.Error(constants.DBError, zap.Error(err), zap.Int("id", id))
 		return errors.Wrap(pkgErrors.ErrDb, err.Error())
 	}
 

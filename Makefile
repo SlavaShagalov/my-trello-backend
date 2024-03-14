@@ -36,6 +36,16 @@ down:
 	sudo rm -rf ./postgres/primary/archive
 	sudo rm -rf ./postgres/standby/pgdata
 
+.PHONY: prod-up
+prod-up:
+	cp -r ../my-trello-front ./frontend
+	docker compose -f docker-compose.yml up -d --build db sessions-db api-main balancer
+	rm -rf frontend
+
+.PHONY: prod-stop
+prod-stop:
+	docker compose -f docker-compose.yml stop db sessions-db api-main balancer
+
 .PHONY: api-up
 api-up:
 	docker compose -f docker-compose.yml up -d --build db sessions-db api-main balancer
